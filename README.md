@@ -1,2 +1,3 @@
-# deep_learning
+# Deep Learning
+
 Collection of deep learning algorithms
