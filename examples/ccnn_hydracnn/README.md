@@ -10,52 +10,29 @@ This repository provides the implementation of CCNN and Hydra models for object 
 
 ## Contents
 1. [Requirements: software](#requirements-software)
-2. [Requirements: hardware](#requirements-hardware)
-3. [Basic installation](#basic-installation-sufficient-for-the-demo)
-4. [Demo](#demo)
-5. [How to reproduce the results of the paper](#how-to-reproduce-the-results-of-the-paper)
-6. [Remarks](#remarks)
-7. [Acknowledgements](#acknowledgements)
+2. [Basic installation](#basic-installation-sufficient-for-the-demo)
+3. [Demo](#demo)
+4. [How to reproduce the results of the paper](#how-to-reproduce-the-results-of-the-paper)
+5. [Remarks](#remarks)
+6. [Acknowledgements](#acknowledgements)
 
 ### Requirements: software
 
-1. Use a Linux distribution. We have developed and tested the code on [Ubuntu](http://www.ubuntu.com/).
+1. Developed and tested the code on mac osX Sierra 10.12.6.
 
+2. Requirements for `Tensorflow`. Follow the [Tensorflow installation instructions](https://www.tensorflow.org/install/).
 
-2. Requirements for `Caffe` and `pycaffe`. Follow the [Caffe installation instructions](http://caffe.berkeleyvision.org/installation.html).
+3. For windows, [Cygwin](https://cygwin.com/install.html) is required. Make sure that `wget` package is selected.
 
-  **Note:** Caffe *must* be built with support for Python layers!
+### Convert Caffe model to TensorFlow
 
-  ```make
-  # In your Makefile.config, make sure to have this line uncommented
-  WITH_PYTHON_LAYER := 1
-  ```
+[caffe-tensorflow](https://github.com/ethereon/caffe-tensorflow) is used to convert caffe model to TensorFlow model because the original code was written in caffe framework.
 
-3. Python packages you need: `cython`, `python-opencv`, `python-h5py`, `easydict`, `pillow (version >= 3.4.2)`.
+* Example
+```Shell
+python caffe-tensorflow/convert.py --caffemodel examples/ccnn_hydracnn/models/trancos/ccnn/trancos_ccnn.caffemodel --data-output-path examples/ccnn_hydracnn/models/trancos/ccnn/trancos_ccnn.npy --code-output-path examples/ccnn_hydracnn/models/trancos/ccnn/trancos_ccnn.py examples/ccnn_hydracnn/models/trancos/ccnn/ccnn_deploy.prototxt
+```
 
-
-### Requirements: hardware
-
-This code allows the usage of CPU and GPU, but we strongly recommend the usage of GPU.
-
-1. For training, we recommend using a GPU with at least 3GB of memory.
-
-2. For testing, a GPU with 2GB of memory is enough.
-
-### Basic installation (sufficient for the demo)
-
-1. Be sure you have added to your `PATH` the `tools` directory of your `Caffe` installation:
-
-    ```Shell
-    export PATH=<your_caffe_root_path>/build/tools:$PATH
-    ```
-    
-2. Be sure you have added your `pycaffe` compilation into your `PYTHONPATH`:
-    
-    ```Shell
-    export PYTHONPATH=<your_caffe_root_path>/python:$PYTHONPATH
-    ```
-    
 ### Demo
 
 We here provide a demo consisting in predicting the number of vehicles in the test images of the [TRANCOS dataset](http://agamenon.tsc.uah.es/Personales/rlopez/data/trancos/), which was used in our ECCV paper. 
