@@ -50,10 +50,13 @@ class TFPredictor:
         images = tf.placeholder(tf.float32, [1, 72, 72, 3])
         self.net = MyNet({"data_s0": images})
 
+        weights = np.load(tfdata)
+        weights.item()["conv6"]["biases"] = np.array([weights.item()["conv6"]["biases"]])
+
     with tf.Session() as sess:
       # Load the data
       sess.run(tf.global_variables_initializer())
-      self.net.load(tfdata, sess)
+      self.net.load(weights, sess)
 
   # Probably it is not the eficient way to do it...
   def process(self, im, base_pw):
