@@ -12,6 +12,9 @@ specified dataset.
 # File storage
 import h5py
 import scipy.io as sio
+import skimage.io
+from matplotlib import pyplot as plt
+from matplotlib import cm
 
 # System
 import signal
@@ -300,6 +303,7 @@ def main(argv):
   print "TF convertor path: ", tfmodule_path
   print "Batch size: ", b_size
   print "Resize images: ", resize_im
+  print "Colored: ", is_colored
   print "==================="
   
   print "----------------------"
@@ -332,9 +336,7 @@ def main(argv):
   game_table = np.zeros( (n_im, mx_game) )
   
   # Init CNN
-  CNN = TFPredictor(tfdata_path, tfclass_path, tfmodule_path, n_scales)
-  assert  1==0
-  #CNN = CaffePredictor(prototxt_path, caffemodel_path, n_scales)
+  #CNN = TFPredictor(tfdata_path, tfclass_path, tfmodule_path, n_scales)
   
   print 
   print "Start prediction ..."
@@ -346,17 +348,24 @@ def main(argv):
     # Get image paths
     im_path = utl.extendName(name, im_folder)
     dot_im_path = utl.extendName(name, im_folder, use_ending=True, pattern=dot_ending)
+    print name, im_path, dot_im_path
 
     # Read image files
     im = loadImage(im_path, color = is_colored)
     dot_im = loadImage(dot_im_path, color = True)
-      
+    print im.shape, dot_im.shape
+
     # Generate features
     if use_perspective:
       dens_im = genPDensity(dot_im, sigmadots, pmap)
     else:
       dens_im = genDensity(dot_im, sigmadots)
-      
+    print dens_im.shape, dens_im
+    imgplot = plt.imshow(dens_im,cmap=cm.jet)
+    plt.colorbar()
+    plt.show()
+    assert 1==0
+
     if resize_im > 0:
       # Resize image
       im = utl.resizeMaxSize(im, resize_im)

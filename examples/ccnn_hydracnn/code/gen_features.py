@@ -63,11 +63,11 @@ def genPDensity(dot_im, sigmadots, pmap):
     dmap = np.zeros( (dot_im.shape[0], dot_im.shape[1]), np.float32 )
 
     # Get notation positions
-    pos_list = getGtPos(dot_im)
+    pos_list = getGtPos(dot_im)    
     for pos in pos_list:
         x,y = pos
         g = 1/pmap[x,y] 
-        
+
         h = np.zeros_like(dmap)
         h[x,y] = 1.0
         h = gaussian_filter( h, sigmadots*g)
