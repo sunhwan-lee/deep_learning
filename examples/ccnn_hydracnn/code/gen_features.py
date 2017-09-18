@@ -301,6 +301,7 @@ def main(argv):
   lpos = []
   lpatches = []
   file_count = 0
+  
   for ix, name in enumerate(im_names):
     print "Processing image: ", name
     # Get image paths
@@ -310,7 +311,7 @@ def main(argv):
     # Read image files
     im = loadImage(im_path, color = is_colored)
     dot_im = loadImage(dot_im_path, color = True)
-
+    
     # Do ground truth
     if use_perspective:
       dens_im = genPDensity(dot_im, sigmadots, pmap)
@@ -333,20 +334,16 @@ def main(argv):
     
     # Collect original patches
     patch = cropAtPos(im, pos, pw_base)
-    print "patch:", patch[0].shape
     # patch = cropPerspective(im, pos, pmap, pw_base)
     
     # Collect dens patches
     dpatch = cropAtPos(dens_im, pos, pw_base)
-    print "dpatch:", dpatch[0].shape, np.sum(dpatch[0])
     # dpatch = cropPerspective(dens_im, pos, pmap, pw_base)
 
     # Resize images
     patch = utl.resizePatches(patch, (pw_norm,pw_norm))
     dpatch = utl.resizeListDens(dpatch, (pw_dens, pw_dens)) # 18 is the output size of the paper
-    print "patch:", patch[0].shape
-    print "dpatch:", dpatch[0].shape, np.sum(dpatch[0])
-
+    
     # Flip function
     if do_flip:
       fpatch = hFlipImages(patch)
@@ -399,8 +396,6 @@ def main(argv):
       lpos = []
       lpatches = []
 
-      assert 1==0
-  
   ## Last save
   if len(lpatches) >0:
     # Prepare for saving
