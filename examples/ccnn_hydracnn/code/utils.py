@@ -148,55 +148,55 @@ def cropPerspective(im, pos, pmap, pw):
     return lpatch
 
 def resizeDensityPatch(patch, opt_size):
-    '''
-    @brief: Take a density map and resize it to the opt_size.
-    @param patch: input density map.
-    @param opt_size: output size.
-    @return: returns resized version of the density map.    
-    '''
-    # Get patch size
-    h, w = patch.shape[0:2]
-    
-    # Total sum
-    patch_sum = patch.sum()
+  '''
+  @brief: Take a density map and resize it to the opt_size.
+  @param patch: input density map.
+  @param opt_size: output size.
+  @return: returns resized version of the density map.    
+  '''
+  # Get patch size
+  h, w = patch.shape[0:2]
+  
+  # Total sum
+  patch_sum = patch.sum()
 
-    # Normalize values between 0 and 1. It is in order to performa a resize.    
-    p_max = patch.max()
-    p_min = patch.min()
-    # Avoid 0 division
-    if patch_sum !=0:
-        patch = (patch - p_min)/(p_max - p_min)
-    
-    # Resize
-    patch = resize(patch, opt_size, mode='constant')
-    
-    # Return back to the previous scale
-    patch = patch*(p_max - p_min) + p_min
-    
-    # Keep count
-    res_sum = patch.sum()
-    if res_sum != 0:
-        return patch * (patch_sum/res_sum)
+  # Normalize values between 0 and 1. It is in order to performa a resize.    
+  p_max = patch.max()
+  p_min = patch.min()
+  # Avoid 0 division
+  if patch_sum !=0:
+    patch = (patch - p_min)/(p_max - p_min)
+  
+  # Resize
+  patch = resize(patch, opt_size, mode='constant')
+  
+  # Return back to the previous scale
+  patch = patch*(p_max - p_min) + p_min
+  
+  # Keep count
+  res_sum = patch.sum()
+  if res_sum != 0:
+    return patch * (patch_sum/res_sum)
 
-    return patch
+  return patch
 
 def resizeListDens(patch_list, psize):
-    for ix, patch in enumerate(patch_list):
-        # Keep count
-        patch_list[ix] = resizeDensityPatch(patch, psize)
-            
-    return patch_list
+  for ix, patch in enumerate(patch_list):
+    # Keep count
+    patch_list[ix] = resizeDensityPatch(patch, psize)
+          
+  return patch_list
 
 def resizePatches(patch_list, psize):
-    for ix, patch in enumerate(patch_list):
-        # Get patch size
-        h, w, _ = patch.shape
-        
-        # Resize        
-        patch = resize(patch, psize, mode='constant')
-        patch_list[ix] = patch
+  for ix, patch in enumerate(patch_list):
+    # Get patch size
+    h, w, _ = patch.shape
     
-    return patch_list
+    # Resize        
+    patch = resize(patch, psize, mode='constant')
+    patch_list[ix] = patch
+  
+  return patch_list
 
 def genRandomPos(imSize, pw, N):
     ih=imSize[0]
