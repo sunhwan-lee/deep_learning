@@ -22,6 +22,8 @@ import sys, getopt
 
 # File storage
 import h5py
+from matplotlib import pyplot as plt
+from matplotlib import cm
 
 # Vision and maths
 import numpy as np
@@ -238,185 +240,188 @@ def dispHelp():
     print "\t--cfg <config file yaml>"
     
 def main(argv):
-    # Init cfg file
-    cfg_file = ''
-    
-    # Get parameters
-    try:
-        opts, _ = getopt.getopt(argv, "h:", ["cfg="])
-    except getopt.GetoptError:
-        dispHelp()
-        return
-    
-    for opt, arg in opts:
-        if opt == '-h':
-            dispHelp(argv[0])
-            return
-        elif opt in ("--cfg"):
-            cfg_file = arg
+  # Init cfg file
+  cfg_file = ''
+  
+  # Get parameters
+  try:
+    opts, _ = getopt.getopt(argv, "h:", ["cfg="])
+  except getopt.GetoptError:
+    dispHelp()
+    return
+  
+  for opt, arg in opts:
+    if opt == '-h':
+      dispHelp(argv[0])
+      return
+    elif opt in ("--cfg"):
+      cfg_file = arg
             
-    print "Loading configuration file: ", cfg_file
-    (dataset, im_folder, im_list_file, output_file, feature_file_path, 
-    dot_ending, pw_base, pw_norm, pw_dens, sigmadots, Nr, n_scales, split_size, 
-    do_flip, perspective_path, use_perspective, is_colored, resize_im) = initGenFeatFromCfg(cfg_file)
+  print "Loading configuration file: ", cfg_file
+  (dataset, im_folder, im_list_file, output_file, feature_file_path, 
+  dot_ending, pw_base, pw_norm, pw_dens, sigmadots, Nr, n_scales, split_size, 
+  do_flip, perspective_path, use_perspective, is_colored, resize_im) = initGenFeatFromCfg(cfg_file)
     
-    print "Choosen parameters:"
-    print "-------------------"
-    print "Dataset: ", dataset
-    print "Data base location: ", im_folder
-    print "Image names file: ", im_list_file 
-    print "Output file:", output_file
-    print "Output feature names file:", feature_file_path
-    print "Dot image ending: ", dot_ending
-    print "Patch width (pw_base): ", pw_base
-    print "Patch width (pw_norm): ", pw_norm
-    print "Patch width (pw_dens): ", pw_dens
-    print "Number of patches per image: ", Nr
-    print "Perspective map: ", perspective_path
-    print "Use perspective:", use_perspective
-    print "Sigma for each dot: ", sigmadots
-    print "Number of scales: ", n_scales
-    print "Split size: ", split_size
-    print "Flip images: ", do_flip
-    print "Resize images: ", resize_im
-    print "==================="
+  print "Choosen parameters:"
+  print "-------------------"
+  print "Dataset: ", dataset
+  print "Data base location: ", im_folder
+  print "Image names file: ", im_list_file 
+  print "Output file:", output_file
+  print "Output feature names file:", feature_file_path
+  print "Dot image ending: ", dot_ending
+  print "Patch width (pw_base): ", pw_base
+  print "Patch width (pw_norm): ", pw_norm
+  print "Patch width (pw_dens): ", pw_dens
+  print "Number of patches per image: ", Nr
+  print "Perspective map: ", perspective_path
+  print "Use perspective:", use_perspective
+  print "Sigma for each dot: ", sigmadots
+  print "Number of scales: ", n_scales
+  print "Split size: ", split_size
+  print "Flip images: ", do_flip
+  print "Resize images: ", resize_im
+  print "Colored: ", is_colored
+  print "==================="
     
-    print "Reading perspective file"
+  print "Reading perspective file"
+  if use_perspective:
+    pers_file = h5py.File(perspective_path,'r')
+    pmap = np.array( pers_file['pmap'] )
+    pers_file.close()
+    
+  print "Creating feature names file:"
+  feature_file = open(feature_file_path, 'w')
+  feature_file.close() # Create empty file
+    
+  print "Reading image file names:"
+  im_names = np.loadtxt(im_list_file, dtype='str')
+
+  ldens = []
+  lpos = []
+  lpatches = []
+  file_count = 0
+  for ix, name in enumerate(im_names):
+    print "Processing image: ", name
+    # Get image paths
+    im_path = utl.extendName(name, im_folder)
+    dot_im_path = utl.extendName(name, im_folder, use_ending=True, pattern=dot_ending)
+    
+    # Read image files
+    im = loadImage(im_path, color = is_colored)
+    dot_im = loadImage(dot_im_path, color = True)
+
+    # Do ground truth
     if use_perspective:
-        pers_file = h5py.File(perspective_path,'r')
-        pmap = np.array( pers_file['pmap'] )
-        pers_file.close()
+      dens_im = genPDensity(dot_im, sigmadots, pmap)
+    else:
+      dens_im = genDensity(dot_im, sigmadots)
+    #imgplot = plt.imshow(dens_im,cmap=cm.jet)
+    #plt.show()
+
+    if resize_im > 0:
+      # Resize image
+      im = utl.resizeMaxSize(im, resize_im)
+      gt_sum = dens_im.sum()
+      dens_im = utl.resizeMaxSize(dens_im, resize_im)
+      dens_im = dens_im * gt_sum / dens_im.sum()
+
+    # Collect features from random locations
+    # height, width, _ = im.shape
+    # pos = get_dense_pos(height, width, pw_base=pw_base, stride = 5 )
+    pos = utl.genRandomPos(im.shape, pw_base, Nr)
+
+    # Collect original patches
+    patch = cropAtPos(im, pos, pw_base)
+    # patch = cropPerspective(im, pos, pmap, pw_base)
     
-    print "Creating feature names file:"
-    feature_file = open(feature_file_path, 'w')
-    feature_file.close() # Create empty file
+    # Collect dens patches
+    dpatch = cropAtPos(dens_im, pos, pw_base)
+    # dpatch = cropPerspective(dens_im, pos, pmap, pw_base)
     
-    print "Reading image file names:"
-    im_names = np.loadtxt(im_list_file, dtype='str')
+    # Resize images
+    patch = utl.resizePatches(patch, (pw_norm,pw_norm))
+    dpatch = utl.resizeListDens(dpatch, (pw_dens, pw_dens)) # 18 is the output size of the paper
 
-    ldens = []
-    lpos = []
-    lpatches = []
-    file_count = 0
-    for ix, name in enumerate(im_names):
-        print "Processing image: ", name
-        # Get image paths
-        im_path = utl.extendName(name, im_folder)
-        dot_im_path = utl.extendName(name, im_folder, use_ending=True, pattern=dot_ending)
-        
-        # Read image files
-        im = loadImage(im_path, color = is_colored)
-        dot_im = loadImage(dot_im_path, color = True)
+    # Flip function
+    if do_flip:
+      fpatch = hFlipImages(patch)
+      fdpatch = hFlipImages(dpatch)
 
-        # Do ground truth
-        if use_perspective:
-            dens_im = genPDensity(dot_im, sigmadots, pmap)
-        else:
-            dens_im = genDensity(dot_im, sigmadots)
+      fscales = extractEscales(fpatch, n_scales)
 
-        if resize_im > 0:
-            # Resize image
-            im = utl.resizeMaxSize(im, resize_im)
-            gt_sum = dens_im.sum()
-            dens_im = utl.resizeMaxSize(dens_im, resize_im)
-            dens_im = dens_im * gt_sum / dens_im.sum()
+      # Add flipped data
+      lpatches.append( fscales )
+      ldens.append( fdpatch )
+      lpos.append( pos )
 
-        # Collect features from random locations        
-#         height, width, _ = im.shape
-#         pos = get_dense_pos(height, width, pw_base=pw_base, stride = 5 )
-        pos = utl.genRandomPos(im.shape, pw_base, Nr)
+      
+    # Store features and densities 
+    ldens.append( dpatch )
+    lpos.append(pos)
+    lpatches.append( extractEscales(patch, n_scales) )
+      
+    # Save it into a file
+    if split_size > 0 and (ix + 1) % split_size == 0:
+      # Prepare for saving
+      ldens = np.vstack(ldens)
+      lpos = np.vstack(lpos)
+      patches_list = np.vstack(lpatches[:])
+      
+      opt_num_name = output_file + str(file_count) + ".h5"
+      print "Saving data file: ", opt_num_name
+      print "Saving {} examples".format(len(ldens))
+  
+      # Compress data and save
+      feature_file = open(feature_file_path, 'a')
+      comp_kwargs = {'compression': 'gzip', 'compression_opts': 1}
+      with h5py.File(opt_num_name, 'w') as f:
+        f.create_dataset('label', data=ldens, **comp_kwargs)
+          
+        # Save all scales data
+        for s in range(n_scales):
+          dataset_name = 'data_s{}'.format(s) 
+          print "Creating dataset: ", dataset_name
+          f.create_dataset(dataset_name, data=trasposeImages(patches_list[:,s,...]), **comp_kwargs)
+        f.close()
+      feature_file.write(opt_num_name + '\n')
+      feature_file.close()
 
-        # Collect original patches
-        patch = cropAtPos(im, pos, pw_base)
-#         patch = cropPerspective(im, pos, pmap, pw_base)
-        
-        # Collect dens patches
-        dpatch = cropAtPos(dens_im, pos, pw_base)
-#         dpatch = cropPerspective(dens_im, pos, pmap, pw_base)
-        
-        # Resize images
-        patch = utl.resizePatches(patch, (pw_norm,pw_norm))
-        dpatch = utl.resizeListDens(dpatch, (pw_dens, pw_dens)) # 18 is the output size of the paper
+      # Increase file counter
+      file_count += 1
 
-        # Flip function
-        if do_flip:
-            fpatch = hFlipImages(patch)
-            fdpatch = hFlipImages(dpatch)
-
-            fscales = extractEscales(fpatch, n_scales)
-
-            # Add flipped data
-            lpatches.append( fscales )
-            ldens.append( fdpatch )
-            lpos.append( pos )
-
-        
-        # Store features and densities 
-        ldens.append( dpatch )
-        lpos.append(pos)
-        lpatches.append( extractEscales(patch, n_scales) )
-        
-        # Save it into a file
-        if split_size > 0 and (ix + 1) % split_size == 0:
-            # Prepare for saving
-            ldens = np.vstack(ldens)
-            lpos = np.vstack(lpos)
-            patches_list = np.vstack(lpatches[:])
-            
-            opt_num_name = output_file + str(file_count) + ".h5"
-            print "Saving data file: ", opt_num_name
-            print "Saving {} examples".format(len(ldens))
-        
-            # Compress data and save
-            feature_file = open(feature_file_path, 'a')
-            comp_kwargs = {'compression': 'gzip', 'compression_opts': 1}
-            with h5py.File(opt_num_name, 'w') as f:
-                f.create_dataset('label', data=ldens, **comp_kwargs)
-                
-                # Save all scales data
-                for s in range(n_scales):
-                    dataset_name = 'data_s{}'.format(s) 
-                    print "Creating dataset: ", dataset_name
-                    f.create_dataset(dataset_name, data=trasposeImages(patches_list[:,s,...]), **comp_kwargs)
-                f.close()
-            feature_file.write(opt_num_name + '\n')
-            feature_file.close()
-
-            # Increase file counter
-            file_count += 1
-
-            # Clean memory
-            ldens = []
-            lpos = []
-            lpatches = []
-    
+      # Clean memory
+      ldens = []
+      lpos = []
+      lpatches = []
+  
     ## Last save
     if len(lpatches) >0:
-        # Prepare for saving
-        ldens = np.vstack(ldens)
-        lpos = np.vstack(lpos)
-        patches_list = np.vstack(lpatches[:])
-        
-        opt_num_name = output_file + ".h5"
-        print "Saving data file: ", opt_num_name
-        print "Saving {} examples".format(len(ldens))
-    
-        # Compress data and save
-        feature_file = open(feature_file_path, 'a')
-        comp_kwargs = {'compression': 'gzip', 'compression_opts': 1}
-        with h5py.File(opt_num_name, 'w') as f:
-            f.create_dataset('label', data=ldens, **comp_kwargs)
-            # Save all scales data
-            for s in range(n_scales):
-                dataset_name = 'data_s{}'.format(s) 
-                print "Creating dataset: ", dataset_name
-                f.create_dataset(dataset_name, data=trasposeImages(patches_list[:,s,...]), **comp_kwargs)
-            f.close()
-        feature_file.write(opt_num_name + '\n')
-        feature_file.close()
+      # Prepare for saving
+      ldens = np.vstack(ldens)
+      lpos = np.vstack(lpos)
+      patches_list = np.vstack(lpatches[:])
+      
+      opt_num_name = output_file + ".h5"
+      print "Saving data file: ", opt_num_name
+      print "Saving {} examples".format(len(ldens))
+  
+      # Compress data and save
+      feature_file = open(feature_file_path, 'a')
+      comp_kwargs = {'compression': 'gzip', 'compression_opts': 1}
+      with h5py.File(opt_num_name, 'w') as f:
+        f.create_dataset('label', data=ldens, **comp_kwargs)
+        # Save all scales data
+        for s in range(n_scales):
+          dataset_name = 'data_s{}'.format(s) 
+          print "Creating dataset: ", dataset_name
+          f.create_dataset(dataset_name, data=trasposeImages(patches_list[:,s,...]), **comp_kwargs)
+        f.close()
+      feature_file.write(opt_num_name + '\n')
+      feature_file.close()
     
     print "--------------------"    
     print "Finish!"
     
 if __name__ == "__main__":
-    main(sys.argv[1:])
+  main(sys.argv[1:])
