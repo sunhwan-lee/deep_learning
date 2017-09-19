@@ -39,9 +39,12 @@ import os
 import re
 import sys
 import tarfile
+import tftables
 
 from six.moves import urllib
 import tensorflow as tf
+
+import numpy as np
 
 import trancos_input
 
@@ -52,10 +55,8 @@ tf.app.flags.DEFINE_integer('batch_size', 128,
                             """Number of images to process in a batch.""")
 tf.app.flags.DEFINE_string('data_dir', '../data/TRANCOS/images/',
                            """Path to TRANCOS data directory.""")
-tf.app.flags.DEFINE_string('trainval_list', '../data/TRANCOS/image_sets/trainval.txt',
-                           """Path to the list of TRANCOS training / evaluation files.""")
-tf.app.flags.DEFINE_boolean('use_fp16', False,
-                            """Train the model using fp16.""")
+tf.app.flags.DEFINE_string('train_feat_list', '../output/features/train.txt',
+                           """Path to the list of TRANCOS training features.""")
 
 # Global constants describing the CIFAR-10 data set.
 #IMAGE_SIZE = cifar10_input.IMAGE_SIZE
@@ -151,18 +152,34 @@ def distorted_inputs():
   Raises:
     ValueError: If no data_dir
   """
-  if not FLAGS.data_dir:
-    raise ValueError('Please supply a data_dir')
-  
-  images, labels = trancos_input.distorted_inputs(data_dir=FLAGS.data_dir,
-                                                  trainval_list=FLAGS.trainval_list,
-                                                  batch_size=FLAGS.batch_size)
+  if not FLAGS.train_feat_list:
+    raise ValueError('Please supply a train_feat_list')
 
-  #if FLAGS.use_fp16:
-  #  images = tf.cast(images, tf.float16)
-  #  labels = tf.cast(labels, tf.float16)
-  return images, labels
+  filename_queue = np.loadtxt(FLAGS.train_feat_list, dtype='str')
+  for filename in filename_queue:
 
+    filename = "../" + filename
+    print("file name:", filename)
+    reader = tftables.open_file(filename=filename, batch_size=FLAGS.batch_size)
+
+    # Use get_batch to access the table.
+    # Both datasets must be accessed in ordered mode.
+    label_batch = reader.get_batch(
+      path = '/label',
+      ordered = True)
+
+    # Now use get_batch again to access an array.
+    # Both datasets must be accessed in ordered mode.
+    data_batch = reader.get_batch('/data_s0', ordered = True)
+
+    # The loader takes a list of tensors to be stored in the queue.
+    # When accessing in ordered mode, threads should be set to 1.
+    loader = reader.get_fifoloader(
+      queue_size = FLAGS.batch_size,
+      inputs = [label_batch, data_batch],
+      threads = 1)
+
+    return loader
 
 def inputs(eval_data):
   """Construct input for CIFAR evaluation using the Reader ops.

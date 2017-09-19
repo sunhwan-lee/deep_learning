@@ -65,7 +65,14 @@ def train():
     # Force input pipeline to CPU:0 to avoid operations sometimes ending up on
     # GPU and resulting in a slow down.
     with tf.device('/cpu:0'):
-      images, labels = trancos.distorted_inputs()
+      loader = trancos.distorted_inputs()
+      labels, images = loader.dequeue()
+
+    N=100
+    with tf.Session() as sess:
+      for n in range(N):
+        print(n)
+        print(sess.run([tf.shape(labels), labels[0,:,:], tf.shape(images)]))
 
     assert 1==0
 
