@@ -368,6 +368,8 @@ def main(argv):
       ldens = np.vstack(ldens) # 1600 x 18 x 18
       lpos = np.vstack(lpos)   # 1600 x 2
       patches_list = np.vstack(lpatches[:]) # 1600 x 1 x 72 x 72 x 3
+      keys = (np.array(range(ldens.shape[0]))+file_count*ldens.shape[0]).reshape(ldens.shape[0])
+      print(keys)
       
       opt_num_name = output_file + str(file_count) + ".h5"
       print "Saving data file: ", opt_num_name
@@ -378,6 +380,7 @@ def main(argv):
       comp_kwargs = {'compression': 'gzip', 'compression_opts': 1}
       with h5py.File(opt_num_name, 'w') as f:
         f.create_dataset('label', data=ldens, **comp_kwargs)
+        f.create_dataset('key', data=keys, **comp_kwargs)
           
         # Save all scales data
         for s in range(n_scales):

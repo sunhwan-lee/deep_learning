@@ -6,11 +6,11 @@ import tftables
 
 def distorted_inputs():
 
-  filename_queue = ["../output/features/trancos_train_feat_" + str(i) + ".h5" for i in range(2)]
+  filename_queue = ["../output/features/trancos_train_feat_" + str(i) + ".h5" for i in range(3)]
   for filename in filename_queue:
 
     print "file name:", filename
-    reader = tftables.open_file(filename=filename, batch_size=10)
+    reader = tftables.open_file(filename=filename, batch_size=100)
 
     # Use get_batch to access the table.
     # Both datasets must be accessed in ordered mode.
@@ -21,12 +21,13 @@ def distorted_inputs():
     # Now use get_batch again to access an array.
     # Both datasets must be accessed in ordered mode.
     data_batch = reader.get_batch('/data_s0', ordered = True)
+    key_batch = reader.get_batch('/key', ordered = True)
 
     # The loader takes a list of tensors to be stored in the queue.
     # When accessing in ordered mode, threads should be set to 1.
     loader = reader.get_fifoloader(
-        queue_size = 5,
-        inputs = [label_batch, data_batch],
+        queue_size = 10,
+        inputs = [key_batch, label_batch, data_batch],
         threads = 1)
 
     return loader
@@ -39,7 +40,7 @@ def distorted_inputs():
 
 with tf.device('/cpu:0'):
   loader = distorted_inputs()
-  labels, images = loader.dequeue()
+  keys, labels, images = loader.dequeue()
 
 # The dequeued data can then be used in your network.
 #result = my_network(label_cpu, data_cpu)
@@ -47,14 +48,14 @@ with tf.device('/cpu:0'):
 #initialize the variable
 #init_op = tf.initialize_all_variables()
 
-N=319
+N=100
 with tf.Session() as sess:
 #  sess.run(init_op)
   with loader.begin(sess):
     for n in range(N):
       print(n)
       print(sess.run(tf.shape(labels)))
-      print(sess.run(labels[0,:,:]))
+      print(sess.run(keys))
 
 #reader.close()
 
@@ -63,8 +64,17 @@ filename = "../output/features/trancos_train_feat_0.h5"
 f = h5py.File(filename, 'r')
 
 # List all groups
-print("Keys: %s" % f.keys())
-print(f["label"].shape)
-print(f["label"][0,:,:])
+print(list(f["key"]))
 print()
-print(f["label"][(N-1)*10,:,:])
+
+filename = "../output/features/trancos_train_feat_1.h5"
+f = h5py.File(filename, 'r')
+# List all groups
+print(list(f["key"]))
+print()
+
+filename = "../output/features/trancos_train_feat_2.h5"
+f = h5py.File(filename, 'r')
+# List all groups
+print(list(f["key"]))
+
