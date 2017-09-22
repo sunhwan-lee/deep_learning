@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os 
 import glob
 #import vigra
@@ -5,26 +7,63 @@ import numpy as np
 import scipy.io
 from skimage.transform import resize
 
-def resizeMaxSize(im, max_size):
-    """
-    Resize an image leting its maximun size to max_size without modifing its 
-    aspect ratio.
-    @param im: input image
-    @param max_size: maxinum size
-    @return: resized image
-    """
+import tensorflow as tf
 
-    h,w = im.shape[0:2]
-    
-    im_resized = None
-    if w > h:
-        s = float(max_size)/w        
-        im_resized = resize(im, (int(h*s), max_size), mode='constant')
-    else:
-        s = float(max_size)/h
-        im_resized = resize(im, (max_size, int(w*s)), mode='constant')
-    
-    return im_resized    
+def _int64_feature(value):
+  return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+def _bytes_feature(value):
+  return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+def _float_feature(value):
+  return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
+
+def npy_to_tfr(images, labels, filename):
+  """Converts a dataset to tfrecords."""
+  num_examples = images.shape[0]
+  num_labels   = labels.shape[0]
+
+  if num_labels != num_examples:
+    raise ValueError('Data size %d does not match label size %d.' %
+                     (num_examples, num_labels))
+  rows = images.shape[1]
+  cols = images.shape[2]
+  depth = images.shape[3]
+
+  print('Writing', filename)
+  writer = tf.python_io.TFRecordWriter(filename)
+  for index in range(num_examples):
+    image_raw = images[index].tostring()
+    label_raw = labels[index].tostring()
+    example = tf.train.Example(features=tf.train.Features(feature={
+        'height': _int64_feature(rows),
+        'width': _int64_feature(cols),
+        'depth': _int64_feature(depth),
+        'label_raw': _bytes_feature(label_raw),
+        'image_raw': _bytes_feature(image_raw)}))
+    writer.write(example.SerializeToString())
+  writer.close()
+
+def resizeMaxSize(im, max_size):
+  """
+  Resize an image leting its maximun size to max_size without modifing its 
+  aspect ratio.
+  @param im: input image
+  @param max_size: maxinum size
+  @return: resized image
+  """
+
+  h,w = im.shape[0:2]
+  
+  im_resized = None
+  if w > h:
+    s = float(max_size)/w        
+    im_resized = resize(im, (int(h*s), max_size), mode='constant')
+  else:
+    s = float(max_size)/h
+    im_resized = resize(im, (max_size, int(w*s)), mode='constant')
+  
+  return im_resized    
 
 def cfgFromFile(filename):
     """Load a config file."""

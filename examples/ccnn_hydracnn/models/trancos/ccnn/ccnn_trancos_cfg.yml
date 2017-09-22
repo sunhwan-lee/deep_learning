@@ -9,7 +9,7 @@ TRANCOS:
   PW: 115            # Base patch side
   NR: 800            # < 1 = dense extraction
   SIG: 15.0        
-  SPLIT: 2          # Create a new file every X images
+  SPLIT: 15          # Create a new file every X images
   USE_MASK: True
   FLIP: True
   USE_PERSPECTIVE: False

@@ -1,0 +1,2 @@
+output/features/trancos_train_feat_0_scale_0.tfrecords
+output/features/trancos_train_feat_1_scale_0.tfrecords

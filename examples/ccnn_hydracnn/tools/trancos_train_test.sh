@@ -13,8 +13,8 @@ GPU_DEV=0
 # CCNN
 CONFIG_FILE=models/trancos/ccnn/ccnn_trancos_cfg.yml
 #CAFFE_MODEL=genfiles/output_models/trancos/ccnn/ccnn_trancos_iter_50000.caffemodel
-DEPLOY=models/trancos/ccnn/ccnn_deploy.prototxt
-SOLVER=models/trancos/ccnn/ccnn_solver.prototxt
+#DEPLOY=models/trancos/ccnn/ccnn_deploy.prototxt
+#SOLVER=models/trancos/ccnn/ccnn_solver.prototxt
 
 # HYDRA 2s
 #CONFIG_FILE=models/trancos/hydra2/hydra2_trancos_cfg.yml

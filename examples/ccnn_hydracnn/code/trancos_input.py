@@ -67,6 +67,7 @@ def read_trancos(filename_queue):
     pass
   result = TRANCOSRecord()
 
+  """
   # Dimensions of the images in TRANCOS dataset.
   #label_bytes = 1
   result.height = 480
@@ -98,7 +99,45 @@ def read_trancos(filename_queue):
   #    [result.depth, result.height, result.width])
   # Convert from [depth, height, width] to [height, width, depth].
   result.uint8image = tf.transpose(depth_major, [1, 2, 0])
+  """
 
+  float32_to_bytes=4
+  # Dimensions of the images in the dataset.
+  label_bytes = 2*2*float32_to_bytes
+  # Set the following constants as appropriate.
+  result.height = 4*float32_to_bytes
+  result.width = 4*float32_to_bytes
+  result.depth = 3*float32_to_bytes
+  image_bytes = result.height * result.width * result.depth
+  # Every record consists of a label followed by the image, with a
+  # fixed number of bytes for each.
+  record_bytes = label_bytes + image_bytes
+
+  #assert record_bytes == 4*float32_to_bytes  # Based on your question.
+
+  # Read a record, getting filenames from the filename_queue.  No
+  # header or footer in the binary, so we leave header_bytes
+  # and footer_bytes at their default of 0.
+  reader = tf.FixedLengthRecordReader(record_bytes=record_bytes)
+  result.key, value = reader.read(filename_queue)
+  
+  # Convert from a string to a vector of uint8 that is record_bytes long.
+  record_bytes = tf.decode_raw(value, tf.float32, little_endian=True)
+  #record_bytes = tf.decode_raw(value, tf.uint8)
+  
+  # The first bytes represent the label, which we convert from uint8->int32.
+  #result.label = tf.reshape(tf.slice(record_bytes, [0], [label_bytes]),[2,2])
+  result.label = tf.reshape(tf.slice(record_bytes, [0], [4]),[2,2])
+  
+  # The remaining bytes after the label represent the image, which we reshape
+  # from [depth * height * width] to [depth, height, width].
+  
+  depth_major = tf.reshape(tf.slice(record_bytes, [4], [48]),
+                           [4, 4, 3])
+  #depth_major = tf.reshape(tf.slice(record_bytes, [label_bytes], [image_bytes]),
+  #                         [result.height, result.width, result.depth])
+  result.float32image = depth_major
+  
   return result
 
 
@@ -138,7 +177,7 @@ def _generate_image_and_label_batch(image, label, min_queue_examples,
   # Display the training images in the visualizer.
   tf.summary.image('images', images)
 
-  return images, tf.reshape(label_batch, [batch_size])
+  return images, label_batch
 
 def gen_random_pos(imSize, pw, N):
     
@@ -154,7 +193,7 @@ def gen_random_pos(imSize, pw, N):
   
   return tf.cast(pos, tf.float32)
 
-def distorted_inputs(data_dir, trainval_list, batch_size):
+def distorted_inputs(feat_list, batch_size):
   """Construct distorted input for CIFAR training using the Reader ops.
 
   Args:
@@ -166,53 +205,32 @@ def distorted_inputs(data_dir, trainval_list, batch_size):
     images: Images. 4D tensor of [batch_size, IMAGE_SIZE, IMAGE_SIZE, 3] size.
     labels: Labels. 1D tensor of [batch_size] size.
   """
-  print("Reading image file names:")
-  im_names = np.loadtxt(trainval_list, dtype='str')
-  filenames = [os.path.join(data_dir, i) for i in im_names]
+  filenames = np.loadtxt(feat_list, dtype='str')
+  filenames = ["../"+f for f in filenames]
+  print("filenames:",filenames)
   
   for f in filenames:
     if not tf.gfile.Exists(f):
       raise ValueError('Failed to find file: ' + f)
-  print('Successfully read', len(filenames), 'images.')      
   
   # Create a queue that produces the filenames to read.
   filename_queue = tf.train.string_input_producer(filenames)
 
   # Read examples from files in the filename queue.
   read_input = read_trancos(filename_queue)
-  reshaped_image = tf.cast(read_input.uint8image, tf.float32)
-  reshaped_image = tf.expand_dims(reshaped_image, 0)
-  _, height, width, depth = reshaped_image.get_shape() 
-  print("reshaped_image:",reshaped_image.get_shape())
-
-  # Randomly crop a [height, width] section of the image and resize to [PW_NORM, PW_NORM].
-  pos = gen_random_pos([height, width], PATCH_WIDTH, NUM_PATCHES)
-  patched_images = tf.image.crop_and_resize(reshaped_image, boxes=pos, 
-    box_ind=tf.cast(range(NUM_PATCHES), tf.int32), crop_size=[PW_NORM,PW_NORM])
-  print("after crop and resize:",patched_images.get_shape())
-
-  # Randomly flip the image horizontally.
-  distorted_image = tf.image.random_flip_left_right(distorted_image)
-  print("after flip:",distorted_image.get_shape())
-
-  # Subtract off the mean and divide by the variance of the pixels.
-  float_image = distorted_image
-
-  # Set the shapes of tensors.
-  float_image.set_shape([height, width, 3])
-  read_input.label.set_shape([1])
-
+  float_image = read_input.float32image
+  
   # Ensure that the random shuffling has good mixing properties.
   min_fraction_of_examples_in_queue = 0.4
   min_queue_examples = int(NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN *
                            min_fraction_of_examples_in_queue)
-  print ('Filling queue with %d CIFAR images before starting to train. '
+  print ('Filling queue with %d TRANCOS images before starting to train. '
          'This will take a few minutes.' % min_queue_examples)
 
   # Generate a batch of images and labels by building up a queue of examples.
   return _generate_image_and_label_batch(float_image, read_input.label,
                                          min_queue_examples, batch_size,
-                                         shuffle=True)
+                                         shuffle=False)
 
 
 def inputs(eval_data, data_dir, batch_size):

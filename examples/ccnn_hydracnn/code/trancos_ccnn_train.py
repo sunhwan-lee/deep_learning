@@ -45,6 +45,8 @@ import trancos
 
 FLAGS = tf.app.flags.FLAGS
 
+tf.app.flags.DEFINE_integer('batch_size', 128,
+                            """Number of images to process in a batch.""")
 tf.app.flags.DEFINE_string('train_dir', '../output/logs/trancos',
                            """Directory where to write event logs """
                            """and checkpoint.""")
@@ -61,18 +63,11 @@ def train():
   with tf.Graph().as_default():
     global_step = tf.contrib.framework.get_or_create_global_step()
 
-    # Get images and labels for CIFAR-10.
+    # Get images and labels for processed TRANCOS data set.
     # Force input pipeline to CPU:0 to avoid operations sometimes ending up on
     # GPU and resulting in a slow down.
     with tf.device('/cpu:0'):
-      loader = trancos.distorted_inputs()
-      labels, images = loader.dequeue()
-
-    N=100
-    with tf.Session() as sess:
-      for n in range(N):
-        print(n)
-        print(sess.run([tf.shape(labels), labels[0,:,:], tf.shape(images)]))
+      images, labels = trancos.inputs(batch_size=FLAGS.batch_size)
 
     assert 1==0
 

@@ -39,7 +39,6 @@ import os
 import re
 import sys
 import tarfile
-import tftables
 
 from six.moves import urllib
 import tensorflow as tf
@@ -51,18 +50,14 @@ import trancos_input
 FLAGS = tf.app.flags.FLAGS
 
 # Basic model parameters.
-tf.app.flags.DEFINE_integer('batch_size', 128,
-                            """Number of images to process in a batch.""")
 tf.app.flags.DEFINE_string('data_dir', '../data/TRANCOS/images/',
                            """Path to TRANCOS data directory.""")
 tf.app.flags.DEFINE_string('train_feat_list', '../output/features/train.txt',
                            """Path to the list of TRANCOS training features.""")
-
-# Global constants describing the CIFAR-10 data set.
-#IMAGE_SIZE = cifar10_input.IMAGE_SIZE
-#NUM_CLASSES = cifar10_input.NUM_CLASSES
-#NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = cifar10_input.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
-#NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = cifar10_input.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
+tf.app.flags.DEFINE_integer('image_size', 72*72*3,
+                            """Number of pixels in input image""")
+tf.app.flags.DEFINE_integer('den_size', 18*18,
+                            """Number of pixels in density map""")
 
 
 # Constants describing the training process.
@@ -75,9 +70,6 @@ INITIAL_LEARNING_RATE = 0.1       # Initial learning rate.
 # to differentiate the operations. Note that this prefix is removed from the
 # names of the summaries when visualizing a model.
 TOWER_NAME = 'tower'
-
-DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz'
-
 
 def _activation_summary(x):
   """Helper to create summaries for activations.
@@ -141,70 +133,67 @@ def _variable_with_weight_decay(name, shape, stddev, wd):
     tf.add_to_collection('losses', weight_decay)
   return var
 
+def read_and_decode(filename_queue):
+  
+  reader = tf.TFRecordReader()
+  _, serialized_example = reader.read(filename_queue)
+  features = tf.parse_single_example(
+      serialized_example,
+      # Defaults are not specified since both keys are required.
+      features={
+          'image_raw': tf.FixedLenFeature([], tf.string),
+          'label_raw': tf.FixedLenFeature([], tf.string),
+      })
 
-def distorted_inputs():
-  """Construct distorted input for CIFAR training using the Reader ops.
+  # Convert from a scalar string tensor to a float32 tensor with shape [FLAGS.image_size].
+  image = tf.decode_raw(features['image_raw'], tf.float32)
+  image.set_shape([FLAGS.image_size])
+  #image.set_shape([4*4*3])
 
+  # Convert label from a scalar string tensor to float32 tensor with
+  # shape [FLAGS.den_size].
+  label = tf.decode_raw(features['label_raw'], tf.float32)
+  label.set_shape([FLAGS.den_size])
+  #label.set_shape([2*2])
+
+  return image, label
+
+def inputs(batch_size, shuffle=False):
+  """Reads input data num_epochs times.
+  Args:
+    batch_size: Number of examples per returned batch.
   Returns:
-    images: Images. 4D tensor of [batch_size, IMAGE_SIZE, IMAGE_SIZE, 3] size.
-    labels: Labels. 1D tensor of [batch_size] size.
-
-  Raises:
-    ValueError: If no data_dir
+    A tuple (images, labels), where:
+    * images is a float tensor with shape [batch_size, IMAGE_PIXELS].
+    * labels is a float tensor with shape [batch_size, LABEL_PIXELS].
+    Note that an tf.train.QueueRunner is added to the graph, which
+    must be run using e.g. tf.train.start_queue_runners().
   """
   if not FLAGS.train_feat_list:
     raise ValueError('Please supply a train_feat_list')
 
-  filename_queue = np.loadtxt(FLAGS.train_feat_list, dtype='str')
-  for filename in filename_queue:
+  filenames = np.loadtxt(FLAGS.train_feat_list, dtype='str')
+  filenames = ["../"+f for f in filenames]  
+  
+  with tf.name_scope('input'):
+    filename_queue = tf.train.string_input_producer(filenames, num_epochs=1)
 
-    filename = "../" + filename
-    print("file name:", filename)
-    reader = tftables.open_file(filename=filename, batch_size=FLAGS.batch_size)
+    # Even when reading in multiple threads, share the filename queue.
+    image, label = read_and_decode(filename_queue)
+    
+    # Shuffle the examples and collect them into batch_size batches.
+    if shuffle:
+      images, labels = tf.train.shuffle_batch(
+          [image, label], batch_size=batch_size, num_threads=2,
+          capacity=1000 + 3 * batch_size,
+          # Ensures a minimum amount of shuffling of examples.
+          min_after_dequeue=1000)
+    else:
+      images, labels = tf.train.batch(
+          [image, label], batch_size=batch_size, num_threads=2,
+          capacity=1000 + 3 * batch_size)
 
-    # Use get_batch to access the table.
-    # Both datasets must be accessed in ordered mode.
-    label_batch = reader.get_batch(
-      path = '/label',
-      ordered = True)
-
-    # Now use get_batch again to access an array.
-    # Both datasets must be accessed in ordered mode.
-    data_batch = reader.get_batch('/data_s0', ordered = True)
-
-    # The loader takes a list of tensors to be stored in the queue.
-    # When accessing in ordered mode, threads should be set to 1.
-    loader = reader.get_fifoloader(
-      queue_size = FLAGS.batch_size,
-      inputs = [label_batch, data_batch],
-      threads = 1)
-
-    return loader
-
-def inputs(eval_data):
-  """Construct input for CIFAR evaluation using the Reader ops.
-
-  Args:
-    eval_data: bool, indicating if one should use the train or eval data set.
-
-  Returns:
-    images: Images. 4D tensor of [batch_size, IMAGE_SIZE, IMAGE_SIZE, 3] size.
-    labels: Labels. 1D tensor of [batch_size] size.
-
-  Raises:
-    ValueError: If no data_dir
-  """
-  if not FLAGS.data_dir:
-    raise ValueError('Please supply a data_dir')
-  data_dir = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin')
-  images, labels = cifar10_input.inputs(eval_data=eval_data,
-                                        data_dir=data_dir,
-                                        batch_size=FLAGS.batch_size)
-  if FLAGS.use_fp16:
-    images = tf.cast(images, tf.float16)
-    labels = tf.cast(labels, tf.float16)
-  return images, labels
-
+    return images, labels
 
 def inference(images):
   """Build the CIFAR-10 model.
