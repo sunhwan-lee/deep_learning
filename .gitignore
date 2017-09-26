@@ -93,4 +93,3 @@ data/
 logs/
 saves/
 examples/ccnn_hydracnn/output/features/
-examples/ccnn_hydracnn/output/features/train.txt
