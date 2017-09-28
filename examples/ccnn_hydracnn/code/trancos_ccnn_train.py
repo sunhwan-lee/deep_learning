@@ -50,11 +50,11 @@ tf.app.flags.DEFINE_integer('batch_size', 128,
 tf.app.flags.DEFINE_string('train_dir', '../output/logs/trancos',
                            """Directory where to write event logs """
                            """and checkpoint.""")
-tf.app.flags.DEFINE_integer('max_steps', 50000,
+tf.app.flags.DEFINE_integer('max_steps', 50000*1600,
                             """Number of batches to run.""")
 tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             """Whether to log device placement.""")
-tf.app.flags.DEFINE_integer('log_frequency', 10,
+tf.app.flags.DEFINE_integer('log_frequency', 100,
                             """How often to log results to the console.""")
 
 
@@ -132,7 +132,7 @@ def train():
           examples_per_sec = FLAGS.log_frequency * FLAGS.batch_size / duration
           sec_per_batch = float(duration / FLAGS.log_frequency)
 
-          format_str = ('%s: step %d, loss = %.2f (%.1f examples/sec; %.3f '
+          format_str = ('%s: step %d, loss = %.4f (%.1f examples/sec; %.3f '
                         'sec/batch)')
           print (format_str % (datetime.now(), self._step, loss_value,
                                examples_per_sec, sec_per_batch))
