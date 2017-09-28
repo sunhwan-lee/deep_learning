@@ -5,24 +5,24 @@ import numpy as np
 # create 10 sample labels and image
 # labels: array of 10 x 2 x 2
 # image: array of 10 x 4 x 4 x 3
-"""
+'''
 labels = np.random.rand(3200,18,18).astype(np.float32)
 #labels = np.random.randint(10, size=(10,2,2))
 images = np.random.rand(3200,72,72,3).astype(np.float32)
 
-print labels[0,:]
-print images[0,:]
+print(labels[0,:])
+print(images[0,:])
 #nttf.npy_to_tfr(images, labels, "../output/features/trancos_train_feat_sample1")
 utl.npy_to_tfr(images, labels, "../output/features/trancos_train_feat_sample0.tfrecords")
 
 labels = np.random.rand(3200,18,18).astype(np.float32)
 images = np.random.rand(3200,72,72,3).astype(np.float32)
 
-print labels[0,:]
-print images[0,:]
+print(labels[0,:])
+print(images[0,:])
 #nttf.npy_to_tfr(images, labels, "../output/features/trancos_train_feat_sample2")
 utl.npy_to_tfr(images, labels, "../output/features/trancos_train_feat_sample1.tfrecords")
-"""
+'''
 def read_and_decode(filename_queue):
   
   reader = tf.TFRecordReader()
@@ -73,9 +73,9 @@ def inputs(batch_size, num_epochs):
     must be run using e.g. tf.train.start_queue_runners().
   """
   if not num_epochs: num_epochs = None
-  
-  filename = ["../output/features/trancos_train_feat_sample"+str(i)+".tfrecords" for i in range(2)]
-
+  #filename = ["D:/IBM/project/deep_learning/examples/ccnn_hydracnn/output/features/trancos_train_feat_"+str(i)+"_scale_0.tfrecords" for i in range(2)]
+  filename = ["../output/features/trancos_train_feat_"+str(i)+"_scale_0.tfrecords" for i in range(2)]
+  print(filename)
   with tf.name_scope('input'):
     filename_queue = tf.train.string_input_producer(
         filename, num_epochs=num_epochs)
@@ -87,25 +87,26 @@ def inputs(batch_size, num_epochs):
     # Shuffle the examples and collect them into batch_size batches.
     # (Internally uses a RandomShuffleQueue.)
     # We run this in two threads to avoid being a bottleneck.
-    #images, labels = tf.train.shuffle_batch(
-    #    [image, label], batch_size=batch_size, num_threads=2,
-    #    capacity=1000 + 3 * batch_size,
-        # Ensures a minimum amount of shuffling of examples.
-    #    min_after_dequeue=1000)
-    images, labels = tf.train.batch(
+    images, labels = tf.train.shuffle_batch(
         [image, label], batch_size=batch_size, num_threads=2,
-        capacity=1000 + 3 * batch_size)
+        capacity=1000 + 3 * batch_size,
+        # Ensures a minimum amount of shuffling of examples.
+        min_after_dequeue=1000)
+    #images, labels = tf.train.batch(
+    #    [image, label], batch_size=batch_size, num_threads=2,
+    #    capacity=1000 + 3 * batch_size)
 
     return images, labels
 
 with tf.Graph().as_default():
   # Input images and labels.
-  images, labels = inputs(batch_size=5,
-                          num_epochs=1)
+  with tf.device('/cpu:0'):
+    images, labels = inputs(batch_size=5,
+                            num_epochs=1)
 
   images = tf.reshape(images,[5,72,72,3])
   labels = tf.reshape(labels,[5,18,18])
-  #print(images.get_shape, labels.get_shape)
+  print(images.get_shape, labels.get_shape)
   # The op for initializing the variables.
   init_op = tf.group(tf.global_variables_initializer(),
                      tf.local_variables_initializer())
