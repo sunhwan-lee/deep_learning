@@ -28,7 +28,7 @@ from matplotlib import cm
 
 # Vision and maths
 import numpy as np
-import utils as utl 
+import utils as utl
 import skimage.io
 from scipy.ndimage.filters import gaussian_filter 
 from skimage.transform import resize
@@ -103,7 +103,7 @@ def cropAtPos(im, pos, pw):
   @return: returns a list with the patches.    
   '''
   
-  dx=dy=pw/2
+  dx=dy=int(pw/2)
   
   lpatch = []
   for p in pos:
@@ -181,9 +181,8 @@ def extractEscales(lim, n_scales):
     ph, pw = im.shape[0:2] # get patch width and height
     scaled_im_list = []
     for s in range(n_scales):
-      ch = s * ph / (2*n_scales)
-      cw = s * pw / (2*n_scales)
-      
+      ch = int(s * ph / (2*n_scales))
+      cw = int(s * pw / (2*n_scales))
       crop_im = im[ch:ph-ch, cw:pw - cw]
       
       scaled_im_list.append(resize(crop_im, (ph,pw)))

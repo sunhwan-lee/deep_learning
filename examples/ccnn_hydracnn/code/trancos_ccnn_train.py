@@ -50,7 +50,7 @@ tf.app.flags.DEFINE_integer('batch_size', 128,
 tf.app.flags.DEFINE_string('train_dir', '../output/logs/trancos',
                            """Directory where to write event logs """
                            """and checkpoint.""")
-tf.app.flags.DEFINE_integer('max_steps', 1000000,
+tf.app.flags.DEFINE_integer('max_steps', 50000,
                             """Number of batches to run.""")
 tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             """Whether to log device placement.""")
@@ -59,7 +59,7 @@ tf.app.flags.DEFINE_integer('log_frequency', 10,
 
 
 def train():
-  """Train CIFAR-10 for a number of steps."""
+  """Train TRANCOS for a number of steps."""
   with tf.Graph().as_default():
     global_step = tf.contrib.framework.get_or_create_global_step()
 
@@ -67,21 +67,50 @@ def train():
     # Force input pipeline to CPU:0 to avoid operations sometimes ending up on
     # GPU and resulting in a slow down.
     with tf.device('/cpu:0'):
-      images, labels = trancos.inputs(batch_size=FLAGS.batch_size)
+      images, labels = trancos.inputs(batch_size=FLAGS.batch_size, shuffle=True)
 
-    assert 1==0
+    # Reshape images and labels
+    images = tf.reshape(images,[FLAGS.batch_size,72,72,3])
+    labels = tf.reshape(labels,[FLAGS.batch_size,18,18])
+    print("Shape of image input:", images.get_shape())
+    print("Shape of label input:", labels.get_shape())
 
     # Build a Graph that computes the logits predictions from the
     # inference model.
-    logits = cifar10.inference(images)
+    final_conv = trancos.inference(images)
+    pred = tf.reshape(final_conv,[FLAGS.batch_size,18,18])
+    print("Shape of predictions:", pred.get_shape()) 
 
     # Calculate loss.
-    loss = cifar10.loss(logits, labels)
+    loss = trancos.loss(labels,pred)
+    print(loss)
 
+    '''
+    init_op = tf.group(tf.global_variables_initializer(),
+                     tf.local_variables_initializer())
+
+    sess = tf.Session()
+
+    # Initialize the variables (the trained variables and the
+    # epoch counter).
+    sess.run(init_op)
+
+    # Start input enqueue threads.
+    coord = tf.train.Coordinator()
+    threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+
+    im, la, loss = sess.run([images, labels, loss])
+    print(la[0,:])
+    print(im.shape,im[0,:])
+    print(loss)
+    assert 1==0
+    '''
+    
+    
     # Build a Graph that trains the model with one batch of examples and
     # updates the model parameters.
-    train_op = cifar10.train(loss, global_step)
-
+    train_op = trancos.train(loss, global_step)
+    
     class _LoggerHook(tf.train.SessionRunHook):
       """Logs loss and runtime."""
 

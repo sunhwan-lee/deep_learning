@@ -1,11 +1,11 @@
 import tensorflow as tf
-import npy_to_tfrecord as nttf
+import utils as utl
 
 import numpy as np
 # create 10 sample labels and image
 # labels: array of 10 x 2 x 2
 # image: array of 10 x 4 x 4 x 3
-
+"""
 labels = np.random.rand(3200,18,18).astype(np.float32)
 #labels = np.random.randint(10, size=(10,2,2))
 images = np.random.rand(3200,72,72,3).astype(np.float32)
@@ -13,7 +13,7 @@ images = np.random.rand(3200,72,72,3).astype(np.float32)
 print labels[0,:]
 print images[0,:]
 #nttf.npy_to_tfr(images, labels, "../output/features/trancos_train_feat_sample1")
-nttf.npy_to_tfr(images, labels, "../output/features/trancos_train_feat_sample0")
+utl.npy_to_tfr(images, labels, "../output/features/trancos_train_feat_sample0.tfrecords")
 
 labels = np.random.rand(3200,18,18).astype(np.float32)
 images = np.random.rand(3200,72,72,3).astype(np.float32)
@@ -21,8 +21,8 @@ images = np.random.rand(3200,72,72,3).astype(np.float32)
 print labels[0,:]
 print images[0,:]
 #nttf.npy_to_tfr(images, labels, "../output/features/trancos_train_feat_sample2")
-nttf.npy_to_tfr(images, labels, "../output/features/trancos_train_feat_sample1")
-
+utl.npy_to_tfr(images, labels, "../output/features/trancos_train_feat_sample1.tfrecords")
+"""
 def read_and_decode(filename_queue):
   
   reader = tf.TFRecordReader()
@@ -103,6 +103,9 @@ with tf.Graph().as_default():
   images, labels = inputs(batch_size=5,
                           num_epochs=1)
 
+  images = tf.reshape(images,[5,72,72,3])
+  labels = tf.reshape(labels,[5,18,18])
+  #print(images.get_shape, labels.get_shape)
   # The op for initializing the variables.
   init_op = tf.group(tf.global_variables_initializer(),
                      tf.local_variables_initializer())
@@ -118,8 +121,11 @@ with tf.Graph().as_default():
   coord = tf.train.Coordinator()
   threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-  im = sess.run([images, labels])
-  print(im[0],im[1])
+  im, la = sess.run([images, labels])
+  print(la[0,:])
+  print(im.shape,im[0,:])
+  #print(im[0][0,:,:,:])
+  #print(im[1][0,:,:,:])
 
   # Wait for threads to finish.
   #coord.join(threads)
