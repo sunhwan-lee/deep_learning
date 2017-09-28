@@ -64,6 +64,8 @@ NUM_EPOCHS_PER_DECAY = 350.0       # Epochs after which learning rate decays.
 LEARNING_RATE_DECAY_FACTOR = 0.001 # Learning rate decay factor.
 INITIAL_LEARNING_RATE = 0.0001     # Initial learning rate.
 
+NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 50000
+
 # If a model is trained with multiple GPUs, prefix all Op names with tower_name
 # to differentiate the operations. Note that this prefix is removed from the
 # names of the summaries when visualizing a model.
@@ -175,22 +177,29 @@ def inputs(batch_size, shuffle=False):
   filenames = ["../"+f for f in filenames]  
   
   with tf.name_scope('input'):
-    filename_queue = tf.train.string_input_producer(filenames, num_epochs=1)
+    filename_queue = tf.train.string_input_producer(filenames)
 
     # Even when reading in multiple threads, share the filename queue.
     image, label = read_and_decode(filename_queue)
     
+    # Ensure that the random shuffling has good mixing properties.
+    min_fraction_of_examples_in_queue = 0.4
+    min_queue_examples = int(NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN *
+                             min_fraction_of_examples_in_queue)
+    print('Filling queue with %d TRANCOS images before starting to train. '
+          'This will take a few minutes.' % min_queue_examples)
+
     # Shuffle the examples and collect them into batch_size batches.
     if shuffle:
       images, labels = tf.train.shuffle_batch(
           [image, label], batch_size=batch_size, num_threads=2,
-          capacity=1000 + 3 * batch_size,
+          capacity=min_queue_examples + 3 * batch_size,
           # Ensures a minimum amount of shuffling of examples.
-          min_after_dequeue=1000)
+          min_after_dequeue=min_queue_examples)
     else:
       images, labels = tf.train.batch(
           [image, label], batch_size=batch_size, num_threads=2,
-          capacity=1000 + 3 * batch_size)
+          capacity=min_queue_examples + 3 * batch_size)
 
     return images, labels
 
