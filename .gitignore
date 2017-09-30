@@ -93,3 +93,5 @@ data/
 logs/
 saves/
 examples/ccnn_hydracnn/output/features/
+examples/lstm_sentiment/tensorboard/
+examples/lstm_sentiment/models/
