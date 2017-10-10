@@ -8,6 +8,8 @@ tf.flags.DEFINE_string('checkpoints_dir', 'checkpoints',
                        '- config.pkl: Contains parameters used to train the model \n'
                        '- model.ckpt: Contains the weights of the model \n'
                        '- model.ckpt.meta: Contains the TensorFlow graph definition \n')
+tf.flags.DEFINE_boolean('save_figure', False,
+                        'Flag for saving a figure. If False, the script shows the figure instead of saving.')
 FLAGS = tf.flags.FLAGS
 
 if FLAGS.checkpoints_dir is None:
@@ -77,4 +79,7 @@ plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
 plt.title('Receiver operating characteristic example')
 plt.legend(loc="lower right")
-plt.savefig('roc_curve_nostalgic.pdf')
+if FLAGS.save_figure:
+    plt.savefig('roc_curve_nostalgic.pdf')
+else:
+    plt.show()
