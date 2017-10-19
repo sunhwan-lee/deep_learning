@@ -34,89 +34,27 @@ import tensorflow as tf
 #===========================================================================
 # Code 
 #===========================================================================
-class TFPredictor:
+def load_model(tfdata, tfclass, tfmodule):
 
-  def __init__(self, tfdata, tfclass, tfmodule, n_scales):
+  # append tensorflow convertor module
+  sys.path.append(os.path.abspath(tfmodule))
+  # append path to tensorflow class file
+  sys.path.append(os.path.abspath(tfclass[:tfclass.rfind("/")+1]))
 
-    # append tensorflow convertor module
-    sys.path.append(os.path.abspath(tfmodule))
-    # append path to tensorflow class file
-    sys.path.append(os.path.abspath(tfclass[:tfclass.rfind("/")+1]))
+  tfclass_name = tfclass[tfclass.rfind("/")+1:]    
+  
+  if "trancos" in tfclass_name:
+    if "ccnn" in tfclass_name:
+  
+      from trancos_ccnn import TRANCOS_CCNN
+  
+      images = tf.placeholder(tf.float32, shape=(None, 72, 72, 3))
+      net = TRANCOS_CCNN({"data_s0": images})
 
-    tfclass_name = tfclass[tfclass.rfind("/")+1:]
-    
-    if "trancos" in tfclass_name:
-      if "ccnn" in tfclass_name:
-    
-        from trancos_ccnn import TRANCOS_CCNN as MyNet
-    
-        images = tf.placeholder(tf.float32, [1, 72, 72, 3])
-        self.net = MyNet({"data_s0": images})
+      weights = np.load(tfdata)
+      weights.item()["conv6"]["biases"] = np.array([weights.item()["conv6"]["biases"]])
 
-        weights = np.load(tfdata)
-        weights.item()["conv6"]["biases"] = np.array([weights.item()["conv6"]["biases"]])
-
-    with tf.Session() as sess:
-      # Load the data
-      sess.run(tf.global_variables_initializer())
-      self.net.load(weights, sess)
-
-  # Probably it is not the eficient way to do it...
-  def process(self, im, base_pw):
-    # Compute dense positions where to extract patches
-    [heith, width] = im.shape[0:2]
-    pos = utl.get_dense_pos(heith, width, base_pw, stride=10)
-
-    # Initialize density matrix and vouting count
-    dens_map = np.zeros( (heith, width), dtype = np.float32 )   # Init density to 0
-    count_map = np.zeros( (heith, width), dtype = np.int32 )     # Number of votes to divide
-      
-    # Iterate for all patches
-    for ix, p in enumerate(pos):
-      # Compute displacement from centers
-      dx=dy=int(base_pw/2)
-
-      # Get roi
-      x,y=p
-      sx=slice(x-dx,x+dx+1,None)
-      sy=slice(y-dy,y+dy+1,None)
-      crop_im=im[sx,sy,...]
-      h, w = crop_im.shape[0:2]
-      if h!=w or (h<=0):
-          continue
-      
-      # Get all the scaled images
-      im_scales = extractEscales([crop_im], self._n_scales)
-      
-      # Load and forward CNN
-      for s in range(self._n_scales):
-        data_name = 'data_s{}'.format(s)
-        self.net.blobs[data_name].data[...] = self.transformer.preprocess('data', im_scales[0][s].copy())
-      self.net.forward()
-      
-      # Take the output from the last layer
-      # Access to the last layer of the net, second element of the tuple (layer, caffe obj)
-      pred = self.net.blobs.items()[-1][1].data
-      
-      # Make it squared
-      p_side = int(np.sqrt( len( pred.flatten() ) )) 
-      pred = pred.reshape(  (p_side, p_side) )
-      
-      # Resize it back to the original size
-      pred = utl.resizeDensityPatch(pred, crop_im.shape[0:2])          
-      pred[pred<0] = 0
-
-      # Sumup density map into density map and increase count of votes
-      dens_map[sx,sy] += pred
-      count_map[sx,sy] += 1
-
-    # Remove Zeros
-    count_map[ count_map == 0 ] = 1
-
-    # Average density map
-    dens_map = dens_map / count_map        
-    
-    return dens_map
+  return net, weights
         
 def gameRec(test, gt, cur_lvl, tar_lvl):
     '''
@@ -172,21 +110,6 @@ def gameMetric(test, gt, lvl):
 #===========================================================================
 # Some helpers functions
 #===========================================================================
-def testOnImg(CNN, im, gtdots, pw, mask = None):
-    
-    # Process Image
-    resImg = CNN.process(im, pw) 
-
-    # Mask image if provided
-    if mask is not None:
-        resImg = resImg * mask
-        gtdots = gtdots * mask
-
-    npred=resImg.sum()
-    ntrue=gtdots.sum()
-
-    return ntrue,npred,resImg,gtdots
-
 def initTestFromCfg(cfg_file):
   '''
   @brief: initialize all parameter from the cfg file. 
@@ -222,13 +145,14 @@ def initTestFromCfg(cfg_file):
 
   # Patch parameters
   pw = cfg[dataset].PW # Patch with 
+  pw_norm = cfg[dataset].CNN_PW_IN  # Patch width
   sigmadots = cfg[dataset].SIG # Densities sigma
   n_scales = cfg[dataset].N_SCALES # Escales to extract
   perspective_path = cfg[dataset].PERSPECTIVE_MAP
   is_colored = cfg[dataset].COLOR
       
   return (dataset, use_mask, mask_file, test_names_file, im_folder, 
-          dot_ending, pw, sigmadots, n_scales, perspective_path, 
+          dot_ending, pw, pw_norm, sigmadots, n_scales, perspective_path, 
           use_perspective, is_colored, results_file, resize_im)
 
 
@@ -281,7 +205,7 @@ def main(argv):
             
   print "Loading configuration file: ", cfg_file
   (dataset, use_mask, mask_file, test_names_file, im_folder, 
-            dot_ending, pw, sigmadots, n_scales, perspective_path, 
+            dot_ending, pw, pw_norm, sigmadots, n_scales, perspective_path, 
             use_perspective, is_colored, results_file, resize_im) = initTestFromCfg(cfg_file)
             
   print "Choosen parameters:"
@@ -294,6 +218,7 @@ def main(argv):
   print "Use mask: ", use_mask
   print "Mask pattern: ", mask_file
   print "Patch width (pw): ", pw
+  print "Patch width (pw_norm): ", pw_norm
   print "Sigma for each dot: ", sigmadots
   print "Number of scales: ", n_scales
   print "Perspective map: ", perspective_path
@@ -336,67 +261,135 @@ def main(argv):
   game_table = np.zeros( (n_im, mx_game) )
   
   # Init CNN
+  net, weights = load_model(tfdata_path, tfclass_path, tfmodule_path)
+  input_image = net.inputs['data_s0']
   #CNN = TFPredictor(tfdata_path, tfclass_path, tfmodule_path, n_scales)
   
   print 
   print "Start prediction ..."
   count = 0
   gt_vector = np.zeros((len(im_names)))
-  pred_vector = np.zeros((len(im_names)))    
+  pred_vector = np.zeros((len(im_names)))
+
+  with tf.Session() as sess:
+    # Load the converted parameters
+    sess.run(tf.global_variables_initializer())
+    net.load(weights, sess)
   
-  for ix, name in enumerate(im_names):
-    # Get image paths
-    im_path = utl.extendName(name, im_folder)
-    dot_im_path = utl.extendName(name, im_folder, use_ending=True, pattern=dot_ending)
-    print name, im_path, dot_im_path
+    for ix, name in enumerate(im_names):
+      # Get image paths
+      im_path = utl.extendName(name, im_folder)
+      dot_im_path = utl.extendName(name, im_folder, use_ending=True, pattern=dot_ending)
+      print name, im_path, dot_im_path
 
-    # Read image files
-    im = loadImage(im_path, color = is_colored)
-    dot_im = loadImage(dot_im_path, color = True)
-    print im.shape, dot_im.shape
+      # Read image files
+      im = loadImage(im_path, color = is_colored)
+      dot_im = loadImage(dot_im_path, color = True)
+      #print im.shape, dot_im.shape
 
-    # Generate features
-    if use_perspective:
-      dens_im = genPDensity(dot_im, sigmadots, pmap)
-    else:
-      dens_im = genDensity(dot_im, sigmadots)
-    print dens_im.shape, dens_im
-    imgplot = plt.imshow(dens_im,cmap=cm.jet)
-    plt.colorbar()
-    plt.show()
-    assert 1==0
-
-    if resize_im > 0:
-      # Resize image
-      im = utl.resizeMaxSize(im, resize_im)
-      gt_sum = dens_im.sum()
-      dens_im = utl.resizeMaxSize(dens_im, resize_im)
-      dens_im = dens_im * gt_sum / dens_im.sum()
+      # Generate features
+      if use_perspective:
+        dens_im = genPDensity(dot_im, sigmadots, pmap)
+      else:
+        dens_im = genDensity(dot_im, sigmadots)
+      #print dens_im.shape, dens_im, np.sum(dens_im)
+      #imgplot = plt.imshow(dens_im,cmap=cm.jet)
+      #plt.colorbar()
+      #plt.show()
       
-    # Get mask if needed
-    if dataset != 'UCSD':
-      if use_mask:
-        mask_im_path = utl.extendName(name, im_folder, use_ending=True, pattern=mask_file)
-        mask = sio.loadmat(mask_im_path, chars_as_strings=1, matlab_compatible=1)
-        mask = mask.get('BW')
-      
-    s=time.time()
-    ntrue,npred,resImg,gtdots=testOnImg(CNN, im, dens_im, pw, mask)
-    print "image : %d , ntrue = %.2f ,npred = %.2f , time =%.2f sec"%(count,ntrue,npred,time.time()-s)
-  
-    # Keep individual predictions
-    gt_vector[ix] = ntrue
-    pred_vector[ix] = npred    
+      if resize_im > 0:
+        # Resize image
+        im = utl.resizeMaxSize(im, resize_im)
+        gt_sum = dens_im.sum()
+        dens_im = utl.resizeMaxSize(dens_im, resize_im)
+        dens_im = dens_im * gt_sum / dens_im.sum()
+        
+      # Get mask if needed
+      if dataset != 'UCSD':
+        if use_mask:
+          mask_im_path = utl.extendName(name, im_folder, use_ending=True, pattern=mask_file)
+          mask = sio.loadmat(mask_im_path, chars_as_strings=1, matlab_compatible=1)
+          mask = mask.get('BW')
 
-    # Hold predictions and originasl
-    ntrueall.append(ntrue)
-    npredall.append(npred)
+      start_time=time.time()
+
+      [heith, width] = im.shape[0:2]
+      pos = utl.get_dense_pos(heith, width, pw, stride=10)
+      #print pos
+
+      # Initialize density matrix and vouting count
+      dens_map = np.zeros( (heith, width), dtype = np.float32 )   # Init density to 0
+      count_map = np.zeros( (heith, width), dtype = np.int32 )     # Number of votes to divide
+
+      # Iterate for all patches
+      for p in pos:
+        # Compute displacement from centers
+        dx=dy=int(pw/2)
+
+        # Get roi
+        x,y=p
+        sx=slice(x-dx,x+dx+1,None)
+        sy=slice(y-dy,y+dy+1,None)
+        crop_im=im[sx,sy,...]
+        h, w = crop_im.shape[0:2]
+        if h!=w or (h<=0):
+            continue
+        
+        crop_im = utl.resizePatches([crop_im], (pw_norm,pw_norm))
+        #print crop_im[0].shape
+        
+        # Get all the scaled images
+        im_scales = extractEscales(crop_im, n_scales)
+        #print len(im_scales[0]), im_scales[0][0].shape
+        
+        # Load and forward CNN
+        for s in range(n_scales):          
+          pred = sess.run(net.get_output(), feed_dict={input_image: np.expand_dims(im_scales[0][s],0)})
+
+        # Make it squared
+        p_side = int(np.sqrt( len( pred.flatten() ) )) 
+        pred = pred.reshape(  (p_side, p_side) )
+        #print "shape of pred:", pred.shape
+        
+        # Resize it back to the original size
+        pred = utl.resizeDensityPatch(pred, (pw,pw))
+        pred[pred<0] = 0
+        #print "shape of pred:", pred.shape
+        
+        # Sumup density map into density map and increase count of votes
+        dens_map[sx,sy] += pred
+        count_map[sx,sy] += 1
+
+      # Remove Zeros
+      count_map[ count_map == 0 ] = 1
+
+      # Average density map
+      resImg = dens_map / count_map
+
+      # Mask image if provided
+      if mask is not None:
+        resImg = resImg  * mask
+        gtdots = dens_im * mask
+
+      npred=resImg.sum()
+      ntrue=gtdots.sum()
+
+      #ntrue,npred,resImg,gtdots=testOnImg(CNN, im, dens_im, pw, pw_norm, mask)      
+      print "image : %d , ntrue = %.2f ,npred = %.2f , time =%.2f sec"%(count,ntrue,npred,time.time()-start_time)
       
-    # Compute game metric
-    for l in range(mx_game):
-      game_table[count, l] = gameMetric(resImg, gtdots, l)
-  
-    count = count +1
+      # Keep individual predictions
+      gt_vector[ix] = ntrue
+      pred_vector[ix] = npred    
+
+      # Hold predictions and originasl
+      ntrueall.append(ntrue)
+      npredall.append(npred)
+        
+      # Compute game metric
+      for l in range(mx_game):
+        game_table[count, l] = gameMetric(resImg, gtdots, l)
+    
+      count = count +1
           
   ntrueall=np.asarray(ntrueall)
   npredall=np.asarray(npredall)
