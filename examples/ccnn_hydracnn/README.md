@@ -55,7 +55,11 @@ To run the demo, these are the steps to follow:
 
 4. Finally, to run the demo, simply execute the following command:
 	```Shell
-	./tools/demo.sh
+	./tools/demo_trancos.sh
+	```
+	or
+	```Shell
+	python code/test.py --tfdata models/trancos/ccnn/trancos_ccnn.npy --tfclass models/trancos/ccnn/trancos_ccnn.py --tfmodule ../../caffe-tensorflow --cfg models/trancos/ccnn/ccnn_trancos_cfg.yml
 	```
 
 ### How to reproduce the results of the paper?

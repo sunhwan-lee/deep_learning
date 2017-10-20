@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 
 """
 Test script. This code performs a test over with a pre trained model over the
@@ -26,7 +27,6 @@ import time
 import numpy as np
 import utils as utl
 from gen_features import genDensity, genPDensity, loadImage, extractEscales
-import cv2
 
 # tensorflow
 import tensorflow as tf
@@ -51,7 +51,7 @@ def load_model(tfdata, tfclass, tfmodule):
       images = tf.placeholder(tf.float32, shape=(None, 72, 72, 3))
       net = TRANCOS_CCNN({"data_s0": images})
 
-      weights = np.load(tfdata)
+      weights = np.load(tfdata, encoding="latin1")
       weights.item()["conv6"]["biases"] = np.array([weights.item()["conv6"]["biases"]])
 
   return net, weights
@@ -157,15 +157,15 @@ def initTestFromCfg(cfg_file):
 
 
 def dispHelp(arg0):
-  print "======================================================"
-  print "                       Usage"
-  print "======================================================"
-  print "\t-h display this message"
-  print "\t--cpu_only"
-  print "\t--tfclass <Tensorflow class file>"
-  print "\t--tfdata <Tensorflow data file>"
-  print "\t--tfmodule <Caffe to Tensorflow convertor module"
-  print "\t--cfg <config file yaml>"
+  print("======================================================")
+  print("                       Usage")
+  print("======================================================")
+  print("\t-h display this message")
+  print("\t--cpu_only")
+  print("\t--tfclass <Tensorflow class file>")
+  print("\t--tfdata <Tensorflow data file>")
+  print("\t--tfmodule <Caffe to Tensorflow convertor module")
+  print("\t--cfg <config file yaml>")
 
 def main(argv):
     
@@ -184,7 +184,7 @@ def main(argv):
     opts, _ = getopt.getopt(argv, "h:", ["tfclass=", "tfdata=", "tfmodule=",
                                          "cpu_only", "cfg="])
   except getopt.GetoptError as err:
-    print "Error while parsing parameters: ", err
+    print("Error while parsing parameters: ", err)
     dispHelp(argv[0])
     return
   
@@ -203,39 +203,39 @@ def main(argv):
     elif opt in ("--cfg"):
       cfg_file = arg
             
-  print "Loading configuration file: ", cfg_file
+  print("Loading configuration file: ", cfg_file)
   (dataset, use_mask, mask_file, test_names_file, im_folder, 
             dot_ending, pw, pw_norm, sigmadots, n_scales, perspective_path, 
             use_perspective, is_colored, results_file, resize_im) = initTestFromCfg(cfg_file)
             
-  print "Choosen parameters:"
-  print "-------------------"
-  print "Dataset: ", dataset
-  print "Results files: ", results_file
-  print "Test data base location: ", im_folder
-  print "Test inmage names: ", test_names_file
-  print "Dot image ending: ", dot_ending
-  print "Use mask: ", use_mask
-  print "Mask pattern: ", mask_file
-  print "Patch width (pw): ", pw
-  print "Patch width (pw_norm): ", pw_norm
-  print "Sigma for each dot: ", sigmadots
-  print "Number of scales: ", n_scales
-  print "Perspective map: ", perspective_path
-  print "Use perspective:", use_perspective
-  print "TF class path: ", tfclass_path
-  print "TF data path: ", tfdata_path
-  print "TF convertor path: ", tfmodule_path
-  print "Batch size: ", b_size
-  print "Resize images: ", resize_im
-  print "Colored: ", is_colored
-  print "==================="
+  print("Choosen parameters:")
+  print("-------------------")
+  print("Dataset: ", dataset)
+  print("Results files: ", results_file)
+  print("Test data base location: ", im_folder)
+  print("Test inmage names: ", test_names_file)
+  print("Dot image ending: ", dot_ending)
+  print("Use mask: ", use_mask)
+  print("Mask pattern: ", mask_file)
+  print("Patch width (pw): ", pw)
+  print("Patch width (pw_norm): ", pw_norm)
+  print("Sigma for each dot: ", sigmadots)
+  print("Number of scales: ", n_scales)
+  print("Perspective map: ", perspective_path)
+  print("Use perspective:", use_perspective)
+  print("TF class path: ", tfclass_path)
+  print("TF data path: ", tfdata_path)
+  print("TF convertor path: ", tfmodule_path)
+  print("Batch size: ", b_size)
+  print("Resize images: ", resize_im)
+  print("Colored: ", is_colored)
+  print("===================")
   
-  print "----------------------"
-  print "Preparing for Testing"
-  print "======================"
+  print("----------------------")
+  print("Preparing for Testing")
+  print("======================")
     
-  print "Reading perspective file"
+  print("Reading perspective file")
   if use_perspective:
     pers_file = h5py.File(perspective_path,'r')
     pmap = np.array( pers_file['pmap'] )
@@ -243,13 +243,13 @@ def main(argv):
       
   mask = None
   if dataset == 'UCSD':
-    print "Reading mask"
+    print("Reading mask")
     if use_mask:
       mask_f = h5py.File(mask_file,'r')
       mask = np.array(mask_f['mask'])
       mask_f.close()
   
-  print "Reading image file names:"
+  print("Reading image file names:")
   im_names = np.loadtxt(test_names_file, dtype='str')
 
   # Perform test
@@ -266,7 +266,7 @@ def main(argv):
   #CNN = TFPredictor(tfdata_path, tfclass_path, tfmodule_path, n_scales)
   
   print 
-  print "Start prediction ..."
+  print("Start prediction ...")
   count = 0
   gt_vector = np.zeros((len(im_names)))
   pred_vector = np.zeros((len(im_names)))
@@ -280,7 +280,7 @@ def main(argv):
       # Get image paths
       im_path = utl.extendName(name, im_folder)
       dot_im_path = utl.extendName(name, im_folder, use_ending=True, pattern=dot_ending)
-      print name, im_path, dot_im_path
+      print(name, im_path, dot_im_path)
 
       # Read image files
       im = loadImage(im_path, color = is_colored)
@@ -349,12 +349,12 @@ def main(argv):
         # Make it squared
         p_side = int(np.sqrt( len( pred.flatten() ) )) 
         pred = pred.reshape(  (p_side, p_side) )
-        #print "shape of pred:", pred.shape
+        #print("shape of pred:", pred.shape
         
         # Resize it back to the original size
         pred = utl.resizeDensityPatch(pred, (pw,pw))
         pred[pred<0] = 0
-        #print "shape of pred:", pred.shape
+        #print("shape of pred:", pred.shape
         
         # Sumup density map into density map and increase count of votes
         dens_map[sx,sy] += pred
@@ -375,7 +375,7 @@ def main(argv):
       ntrue=gtdots.sum()
 
       #ntrue,npred,resImg,gtdots=testOnImg(CNN, im, dens_im, pw, pw_norm, mask)      
-      print "image : %d , ntrue = %.2f ,npred = %.2f , time =%.2f sec"%(count,ntrue,npred,time.time()-start_time)
+      print("image: %d , ntrue = %.2f ,npred = %.2f , time =%.2f sec"%(count,ntrue,npred,time.time()-start_time))
       
       # Keep individual predictions
       gt_vector[ix] = ntrue
@@ -393,13 +393,13 @@ def main(argv):
           
   ntrueall=np.asarray(ntrueall)
   npredall=np.asarray(npredall)
-  print "done ! mean absolute error %.2f" % np.mean(np.abs(ntrueall-npredall))
+  print("done ! mean absolute error %.2f" % np.mean(np.abs(ntrueall-npredall)))
 
   # Print Game results
   results = np.zeros(mx_game)
   for l in range(mx_game):
     results[l] = np.mean( game_table[:,l] )
-    print "GAME for level %d: %.2f " % (l, np.mean( game_table[:,l] ))
+    print("GAME for level %d: %.2f " % (l, np.mean( game_table[:,l] )))
   
   # Dump results into a txt file
   np.savetxt(results_file + '_pred.txt', npredall)
