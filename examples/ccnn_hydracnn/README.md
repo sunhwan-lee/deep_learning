@@ -18,7 +18,9 @@ This repository provides the implementation of CCNN and Hydra models for object 
 
 ### Requirements: software
 
-1. Developed and tested the code on mac osX Sierra 10.12.6.
+1. Developed and tested the code on following environments
+	1. mac osX Sierra 10.12.6 and python 2.7.11.
+	2. Windows 10 and python 3.6.
 
 2. Requirements for `Tensorflow`. Follow the [Tensorflow installation instructions](https://www.tensorflow.org/install/).
 
@@ -55,10 +57,6 @@ To run the demo, these are the steps to follow:
 
 4. Finally, to run the demo, simply execute the following command:
 	```Shell
-	./tools/demo_trancos.sh
-	```
-	or
-	```Shell
 	python code/test.py --tfdata models/trancos/ccnn/trancos_ccnn.npy --tfclass models/trancos/ccnn/trancos_ccnn.py --tfmodule ../../caffe-tensorflow --cfg models/trancos/ccnn/ccnn_trancos_cfg.yml
 	```
 
@@ -93,12 +91,10 @@ In order to download and setup a dataset we recommend to use our scripts. To do 
 
 #### Download pre-trained models
 
-All our pre-trained models can be downloaded using the corresponding script:
-
-	```Shell
-	./tools/get_all_DATASET_CHOSEN_models.sh
-	```
-
+All our pre-trained models can be downloaded using the corresponding script.
+```Shell
+./tools/get_all_DATASET_CHOSEN_models.sh
+```
 Simply substitute DATASET_CHOSEN by: trancos, ucsd or ucf.
 
 #### Test the pretrained models
