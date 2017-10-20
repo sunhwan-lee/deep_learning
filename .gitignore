@@ -98,3 +98,6 @@ examples/ccnn_hydracnn/output/features/
 checkpoint
 *.pkl
 *.ckpt.*
+
+# caffe model
+*.caffemodel
