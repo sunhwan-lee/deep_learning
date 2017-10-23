@@ -73,7 +73,7 @@ dm = DataManager(data_dir=FLAGS.data_dir,
 
 # create tsv file for word embedding visualiation in tensorboard
 vocab_sorted = sorted([(k,v[0],v[1]) for k,v in dm._vocab.items()], key=lambda x:x[1])
-with open(os.path.join(summaries_dir, "metadata_" + str(FLAGS.n_samples) + ".tsv"), 'wb') as f:
+with open(os.path.join(summaries_dir + '/train', "metadata_" + str(FLAGS.n_samples) + ".tsv"), 'wb') as f:
   f.write('Word\tFrequency\n' + '\n'.join([(w[0] if len(w[0]) else 'NONE') + '\t' + str(w[2]) for w in vocab_sorted]))
 
 nn = NeuralNetwork(hidden_size=[FLAGS.hidden_size],
@@ -87,7 +87,7 @@ embedding = project_config.embeddings.add()
 embedding.tensor_name = nn.embeddings.name
 
 # Link this tensor to its metadata file (e.g. labels).
-embedding.metadata_path = os.path.join(summaries_dir, "metadata_" + str(FLAGS.n_samples) + ".tsv")
+embedding.metadata_path = "metadata_" + str(FLAGS.n_samples) + ".tsv"
 
 # The next line writes a projector_config.pbtxt in the LOG_DIR. TensorBoard will
 # read this file during startup.
