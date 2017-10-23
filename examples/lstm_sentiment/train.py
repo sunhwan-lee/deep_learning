@@ -14,8 +14,6 @@ tf.flags.DEFINE_string('stopwords_file', 'data/stopwords.txt',
                        'Path to stopwords file. If stopwords_file is None, no stopwords will be used')
 tf.flags.DEFINE_integer('n_samples', None,
                         'Number of samples to use from the dataset. Set n_samples=None to use the whole dataset')
-tf.flags.DEFINE_string('checkpoints_root', 'checkpoints',
-                       'Checkpoints directory. Parameters will be saved there')
 tf.flags.DEFINE_string('summaries_dir', 'logs',
                        'Directory where TensorFlow summaries will be stored')
 tf.flags.DEFINE_integer('batch_size', 16,
@@ -48,19 +46,11 @@ summaries_dir = '{0}/{1}'.format(FLAGS.summaries_dir,
 train_writer = tf.summary.FileWriter(summaries_dir + '/train')
 validation_writer = tf.summary.FileWriter(summaries_dir + '/validation')
 
-# Prepare model directory
-#model_name = str(int(time.time()))
-#model_dir = '{0}/{1}'.format(FLAGS.checkpoints_root, model_name)
-#if not os.path.exists(model_dir):
-#    os.makedirs(model_dir)
-
 # Save configuration
 FLAGS._parse_flags()
 config = FLAGS.__dict__['__flags']
 with open('{}/config.pkl'.format(summaries_dir + '/train'), 'wb') as f:
     pickle.dump(config, f)
-#with open('{}/config.pkl'.format(model_dir), 'wb') as f:
-#    pickle.dump(config, f)
 
 # Prepare data and build TensorFlow graph
 dm = DataManager(data_dir=FLAGS.data_dir,
@@ -125,9 +115,3 @@ for i in range(FLAGS.train_steps):
 checkpoint_file = '{}/model.ckpt'.format(summaries_dir + '/train')
 save_path = saver.save(sess, checkpoint_file)
 print('Model saved in: {0}'.format(summaries_dir + '/train'))
-
-
-
-#checkpoint_file = '{}/model.ckpt'.format(model_dir)
-#save_path = saver.save(sess, checkpoint_file)
-#print('Model saved in: {0}'.format(model_dir))
