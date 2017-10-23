@@ -1,6 +1,7 @@
 from utils.data_manager import DataManager
 from utils.neural_network import NeuralNetwork
 import tensorflow as tf
+from tensorflow.contrib.tensorboard.plugins import projector
 import pickle
 import datetime
 import time
@@ -48,16 +49,18 @@ train_writer = tf.summary.FileWriter(summaries_dir + '/train')
 validation_writer = tf.summary.FileWriter(summaries_dir + '/validation')
 
 # Prepare model directory
-model_name = str(int(time.time()))
-model_dir = '{0}/{1}'.format(FLAGS.checkpoints_root, model_name)
-if not os.path.exists(model_dir):
-    os.makedirs(model_dir)
+#model_name = str(int(time.time()))
+#model_dir = '{0}/{1}'.format(FLAGS.checkpoints_root, model_name)
+#if not os.path.exists(model_dir):
+#    os.makedirs(model_dir)
 
 # Save configuration
 FLAGS._parse_flags()
 config = FLAGS.__dict__['__flags']
-with open('{}/config.pkl'.format(model_dir), 'wb') as f:
+with open('{}/config.pkl'.format(summaries_dir + '/train'), 'wb') as f:
     pickle.dump(config, f)
+#with open('{}/config.pkl'.format(model_dir), 'wb') as f:
+#    pickle.dump(config, f)
 
 # Prepare data and build TensorFlow graph
 dm = DataManager(data_dir=FLAGS.data_dir,
@@ -68,11 +71,28 @@ dm = DataManager(data_dir=FLAGS.data_dir,
                  n_samples=FLAGS.n_samples,
                  random_state=FLAGS.random_state)
 
+# create tsv file for word embedding visualiation in tensorboard
+vocab_sorted = sorted([(k,v[0],v[1]) for k,v in dm._vocab.items()], key=lambda x:x[1])
+with open(os.path.join(summaries_dir, "metadata_" + str(FLAGS.n_samples) + ".tsv"), 'wb') as f:
+  f.write('Word\tFrequency\n' + '\n'.join([(w[0] if len(w[0]) else 'NONE') + '\t' + str(w[2]) for w in vocab_sorted]))
+
 nn = NeuralNetwork(hidden_size=[FLAGS.hidden_size],
                    vocab_size=dm.vocab_size,
                    embedding_size=FLAGS.embedding_size,
                    max_length=dm.sequence_len,
                    learning_rate=FLAGS.learning_rate)
+
+project_config = projector.ProjectorConfig()
+embedding = project_config.embeddings.add()
+embedding.tensor_name = nn.embeddings.name
+
+# Link this tensor to its metadata file (e.g. labels).
+embedding.metadata_path = os.path.join(summaries_dir, "metadata_" + str(FLAGS.n_samples) + ".tsv")
+
+# The next line writes a projector_config.pbtxt in the LOG_DIR. TensorBoard will
+# read this file during startup.
+projector.visualize_embeddings(train_writer, project_config)
+
 # Train model
 sess = tf.Session()
 sess.run(nn.initialize_all_variables())
@@ -102,6 +122,12 @@ for i in range(FLAGS.train_steps):
         print('   validation loss: {0:.4f} (accuracy {1:.4f})'.format(val_loss, accuracy))
 
 # Save model
-checkpoint_file = '{}/model.ckpt'.format(model_dir)
+checkpoint_file = '{}/model.ckpt'.format(summaries_dir + '/train')
 save_path = saver.save(sess, checkpoint_file)
-print('Model saved in: {0}'.format(model_dir))
+print('Model saved in: {0}'.format(summaries_dir + '/train'))
+
+
+
+#checkpoint_file = '{}/model.ckpt'.format(model_dir)
+#save_path = saver.save(sess, checkpoint_file)
+#print('Model saved in: {0}'.format(model_dir))

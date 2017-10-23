@@ -35,10 +35,10 @@ class DataManager(object):
         self._stopwords_file = stopwords_file
         self._n_samples = n_samples
         self.sequence_len = sequence_len
-        self._input_file = os.path.join(data_dir, 'data.csv')
         self.data_dir = data_dir
         self._preprocessed_file = os.path.join(data_dir, "preprocessed_" + str(n_samples) + ".npz")
         self._vocab_file = os.path.join(data_dir, "vocab_" + str(n_samples) + ".pkl")
+        self._metadata_file = os.path.join(data_dir, "metadata_" + str(n_samples) + ".tsv")
         self._tensors = None
         self._sentiments = None
         self._lengths = None
@@ -202,7 +202,7 @@ class DataManager(object):
         self._tensors = load_dict['tensors']
         self._sentiments = load_dict['sentiments']
         self.sequence_len = len(self._tensors[0])
-
+        
     def __clean_samples(self, samples):
         """
         Cleans samples.

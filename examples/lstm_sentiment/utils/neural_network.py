@@ -19,7 +19,8 @@ class NeuralNetwork(object):
         self.seq_len = self.__seq_len()
         self.target = self.__target(n_classes)
         self.dropout_keep_prob = self.__dropout_keep_prob()
-        self.word_embeddings = self.__word_embeddings(self.input, vocab_size, embedding_size, random_state)
+        self.embeddings, self.word_embeddings = self.__word_embeddings(self.input, vocab_size, embedding_size, 
+                                                                       random_state)
         self.scores = self.__scores(self.word_embeddings, self.seq_len, hidden_size, n_classes, self.dropout_keep_prob,
                                     random_state)
         self.predict = self.__predict(self.scores)
@@ -79,9 +80,9 @@ class NeuralNetwork(object):
         :return: Embedding lookup tensor with shape [batch_size, max_length, embedding_size]
         """
         with tf.name_scope('word_embeddings'):
-            embeddings = tf.Variable(tf.random_uniform([vocab_size, embedding_size], -1, 1, seed=seed))
+            embeddings = tf.Variable(tf.random_uniform([vocab_size, embedding_size], -1, 1, seed=seed), name='embeddings')
             embedded_words = tf.nn.embedding_lookup(embeddings, x)
-        return embedded_words
+        return embeddings, embedded_words
 
     def __rnn_layer(self, hidden_size, x, seq_len, dropout_keep_prob, variable_scope=None, random_state=None):
         """

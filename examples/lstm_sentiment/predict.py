@@ -47,15 +47,20 @@ with graph.as_default():
     dropout_keep_prob = graph.get_operation_by_name('dropout_keep_prob').outputs[0]
     predict = graph.get_operation_by_name('final_layer/softmax/predictions').outputs[0]
     accuracy = graph.get_operation_by_name('accuracy/accuracy').outputs[0]
+    word_embedding = graph.get_operation_by_name('word_embeddings/embeddings').outputs[0]
 
     # Perform prediction
-    pred, acc = sess.run([predict, accuracy],
-                         feed_dict={input: x_test,
-                                    target: y_test,
-                                    seq_len: test_seq_len,
-                                    dropout_keep_prob: 1})
+    pred, acc, word_embedding = sess.run([predict, accuracy, word_embedding],
+                                         feed_dict={input: x_test,
+                                                    target: y_test,
+                                                    seq_len: test_seq_len,
+                                                    dropout_keep_prob: 1})
 
 # Print results
+print('Word Embedding Matrix:')
+print(word_embedding)
+print('')
+
 for i in range(len(original_text)):
     print('Sample: {0}'.format(original_text[i]))
     print('Predicted sentiment: [{0:.4f}, {1:.4f}]'.format(pred[i, 0], pred[i, 1]))
