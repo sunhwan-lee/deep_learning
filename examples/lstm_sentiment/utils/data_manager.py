@@ -38,7 +38,6 @@ class DataManager(object):
         self.data_dir = data_dir
         self._preprocessed_file = os.path.join(data_dir, "preprocessed_" + str(n_samples) + ".npz")
         self._vocab_file = os.path.join(data_dir, "vocab_" + str(n_samples) + ".pkl")
-        self._metadata_file = os.path.join(data_dir, "metadata_" + str(n_samples) + ".tsv")
         self._tensors = None
         self._sentiments = None
         self._lengths = None
@@ -140,6 +139,7 @@ class DataManager(object):
         samples = np.array(samples)
 
         # Cleans samples text
+        self._raw_samples = samples
         self._samples = self.__clean_samples(samples)
 
         # Prepare vocabulary dict
@@ -187,7 +187,7 @@ class DataManager(object):
         
         # Save intermediate files
         with open(self._vocab_file, 'wb') as f:
-            pickle.dump([self._vocab, self._samples], f)
+            pickle.dump([self._vocab, self._samples, self._raw_samples], f)
         np.savez(self._preprocessed_file, tensors=self._tensors, lengths=self._lengths, sentiments=self._sentiments)
 
     def __load_preprocessed(self):
@@ -195,7 +195,7 @@ class DataManager(object):
         Loads intermediate files, avoiding data preprocess
         """
         with open(self._vocab_file, 'rb') as f:
-            self._vocab, self._samples = pickle.load(f)
+            self._vocab, self._samples, self._raw_samples = pickle.load(f)
         self.vocab_size = len(self._vocab)
         load_dict = np.load(self._preprocessed_file)
         self._lengths = load_dict['lengths']
