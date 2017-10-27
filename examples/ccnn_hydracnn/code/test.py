@@ -53,11 +53,21 @@ def load_model(tfdata, tfclass, tfmodule):
       net = TRANCOS_CCNN({"data_s0": images})
 
   elif "ucsd" in tfclass_name:
+    
     if "ccnn_max" in tfclass_name:
-      from ucsd_ccnn_max import UCSD_CNN
-      
-      images = tf.placeholder(tf.float32, shape=(None, 72, 72, 1))
-      net = UCSD_CNN({"data_s0": images})
+      from ucsd_ccnn_max import UCSD_CNN  
+
+    elif "ccnn_down" in tfclass_name:
+      from ucsd_ccnn_down import UCSD_CNN
+
+    elif "ccnn_min" in tfclass_name:
+      from ucsd_ccnn_min import UCSD_CNN
+
+    elif "ccnn_up" in tfclass_name:
+      from ucsd_ccnn_up import UCSD_CNN
+
+    images = tf.placeholder(tf.float32, shape=(None, 72, 72, 1))
+    net = UCSD_CNN({"data_s0": images})
 
   weights = np.load(tfdata, encoding="latin1")
   weights.item()["conv6"]["biases"] = np.array([weights.item()["conv6"]["biases"]])

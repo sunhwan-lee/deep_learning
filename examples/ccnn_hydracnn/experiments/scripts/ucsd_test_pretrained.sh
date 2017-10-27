@@ -11,8 +11,6 @@ GPU_DEV=0
 # Parameters, uncomment one of the following set of parameters
 # CCNN
 CONFIG_FILE=models/ucsd/ccnn/ccnn_ucsd_cfg.yml
-CAFFE_MODEL=models/pretrained_models/ucsd/ccnn/ucsd_ccnn_max.caffemodel
-DEPLOY=models/ucsd/ccnn/ccnn_deploy.prototxt # Modify it to choose another dataset
 TF_DATA=models/ucsd/ccnn/ucsd_ccnn_max.npy
 TF_CLASS=models/ucsd/ccnn/ucsd_ccnn_max.py
 TF_MODULE=../../caffe-tensorflow

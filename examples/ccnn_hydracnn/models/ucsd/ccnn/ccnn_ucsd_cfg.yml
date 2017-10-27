@@ -23,9 +23,9 @@ UCSD:
   TEST_LIST: 'data/UCSD/image_sets/testing_maximal.txt'
   PERSPECTIVE_MAP: 'data/UCSD/params/ucsd_pmap_min_norm.h5'
   TRAIN_FEAT: 'output/features/UCSD_train_feat_'
-  TRAIN_FEAT_LIST: 'output/features/max_train.txt'
+  TRAIN_FEAT_LIST: 'output/features/ucsd_max_train.txt'
   VAL_FEAT: 'output/features/UCSD_val_feat_'
-  VAL_FEAT_LIST: 'output/features/test.txt'
+  VAL_FEAT_LIST: 'output/features/ucsd_max_test.txt'
   RESULTS_OUTPUT: 'output/results/ccnn_ucsd_max'
 
   # CNN model params

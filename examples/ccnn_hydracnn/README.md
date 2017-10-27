@@ -122,7 +122,7 @@ python caffe-tensorflow/convert.py --caffemodel examples/ccnn_hydracnn/models/uc
     ./experiments/scripts/DATASET_CHOSEN_test_pretrained.sh
 	```
 
-Note that this pretrained models will let you reproduce the results in our paper.
+**Note:** For testing with UCSD data set, change corresponding variables in ccnn_ucsd_cfg.yml and ucsd_test_pretrained.sh files according to different methods among maximal, downscale, upscale, and minimal.
 
 
 #### Train/test the model chosen
