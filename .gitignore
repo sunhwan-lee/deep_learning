@@ -99,5 +99,6 @@ checkpoint
 *.pkl
 *.ckpt.*
 
-# caffe model
+# caffe model and numpy data
 *.caffemodel
+*.npy
