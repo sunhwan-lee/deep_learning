@@ -93,9 +93,25 @@ In order to download and setup a dataset we recommend to use our scripts. To do 
 
 All our pre-trained models can be downloaded using the corresponding script.
 ```Shell
-./tools/get_all_DATASET_CHOSEN_models.sh
+./tools/get_DATASET_CHOSEN_models.sh
 ```
 Simply substitute DATASET_CHOSEN by: trancos, ucsd or ucf.
+
+### Convert Caffe model to TensorFlow
+
+* UCSD
+```Shell
+python caffe-tensorflow/convert.py --caffemodel examples/ccnn_hydracnn/models/ucsd/ccnn/ucsd_ccnn_down.caffemodel --data-output-path examples/ccnn_hydracnn/models/ucsd/ccnn/ucsd_ccnn_down.npy --code-output-path examples/ccnn_hydracnn/models/ucsd/ccnn/ucsd_ccnn_down.py examples/ccnn_hydracnn/models/ucsd/ccnn/ccnn_deploy.prototxt
+
+python caffe-tensorflow/convert.py --caffemodel examples/ccnn_hydracnn/models/ucsd/ccnn/ucsd_ccnn_max.caffemodel --data-output-path examples/ccnn_hydracnn/models/ucsd/ccnn/ucsd_ccnn_max.npy --code-output-path examples/ccnn_hydracnn/models/ucsd/ccnn/ucsd_ccnn_max.py examples/ccnn_hydracnn/models/ucsd/ccnn/ccnn_deploy.prototxt
+
+python caffe-tensorflow/convert.py --caffemodel examples/ccnn_hydracnn/models/ucsd/ccnn/ucsd_ccnn_min.caffemodel --data-output-path examples/ccnn_hydracnn/models/ucsd/ccnn/ucsd_ccnn_min.npy --code-output-path examples/ccnn_hydracnn/models/ucsd/ccnn/ucsd_ccnn_min.py examples/ccnn_hydracnn/models/ucsd/ccnn/ccnn_deploy.prototxt
+
+python caffe-tensorflow/convert.py --caffemodel examples/ccnn_hydracnn/models/ucsd/ccnn/ucsd_ccnn_up.caffemodel --data-output-path examples/ccnn_hydracnn/models/ucsd/ccnn/ucsd_ccnn_up.npy --code-output-path examples/ccnn_hydracnn/models/ucsd/ccnn/ucsd_ccnn_up.py examples/ccnn_hydracnn/models/ucsd/ccnn/ccnn_deploy.prototxt
+```
+
+* UCF
+
 
 #### Test the pretrained models
 1. Edit the corresponding script $PROJECT/experiments/scripts/DATASET_CHOSEN_test_pretrained.sh
@@ -118,12 +134,3 @@ Note that this pretrained models will let you reproduce the results in our paper
 	```Shell
     ./tools/DATASET_CHOSEN_train_test.sh
     ```
-
-
-### Remarks
-
-In order to provide a better distribution, this repository *unifies and reimplements* in Python some of the original modules. Due to these changes in the libraries used, the results produced by this software might be slightly different from the ones reported in the paper.
-
-
-### Acknowledgements
-This work is supported by the projects of the DGT with references SPIP2014-1468 and SPIP2015-01809, and the project of the MINECO TEC2013-45183-R.

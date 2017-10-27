@@ -41,18 +41,26 @@ def load_model(tfdata, tfclass, tfmodule):
   # append path to tensorflow class file
   sys.path.append(os.path.abspath(tfclass[:tfclass.rfind("/")+1]))
 
-  tfclass_name = tfclass[tfclass.rfind("/")+1:]    
+  tfclass_name = tfclass[tfclass.rfind("/")+1:]
+
+  
   
   if "trancos" in tfclass_name:
     if "ccnn" in tfclass_name:
-  
       from trancos_ccnn import TRANCOS_CCNN
   
-      images = tf.placeholder(tf.float32, shape=(None, 72, 72, 3))
+      images = tf.placeholder(tf.float32, shape=(None, 72, 72, 3))    
       net = TRANCOS_CCNN({"data_s0": images})
 
-      weights = np.load(tfdata, encoding="latin1")
-      weights.item()["conv6"]["biases"] = np.array([weights.item()["conv6"]["biases"]])
+  elif "ucsd" in tfclass_name:
+    if "ccnn_max" in tfclass_name:
+      from ucsd_ccnn_max import UCSD_CNN
+      
+      images = tf.placeholder(tf.float32, shape=(None, 72, 72, 1))
+      net = UCSD_CNN({"data_s0": images})
+
+  weights = np.load(tfdata, encoding="latin1")
+  weights.item()["conv6"]["biases"] = np.array([weights.item()["conv6"]["biases"]])
 
   return net, weights
         
@@ -213,7 +221,7 @@ def main(argv):
   print("Dataset: ", dataset)
   print("Results files: ", results_file)
   print("Test data base location: ", im_folder)
-  print("Test inmage names: ", test_names_file)
+  print("Test image names: ", test_names_file)
   print("Dot image ending: ", dot_ending)
   print("Use mask: ", use_mask)
   print("Mask pattern: ", mask_file)
@@ -240,7 +248,8 @@ def main(argv):
     pers_file = h5py.File(perspective_path,'r')
     pmap = np.array( pers_file['pmap'] )
     pers_file.close()
-      
+  #print('pmap:',pmap, pmap.shape)
+  
   mask = None
   if dataset == 'UCSD':
     print("Reading mask")
@@ -248,10 +257,11 @@ def main(argv):
       mask_f = h5py.File(mask_file,'r')
       mask = np.array(mask_f['mask'])
       mask_f.close()
+  #print('mask:', mask, mask.shape)
   
   print("Reading image file names:")
   im_names = np.loadtxt(test_names_file, dtype='str')
-
+  
   # Perform test
   ntrueall=[]
   npredall=[]
@@ -261,12 +271,12 @@ def main(argv):
   game_table = np.zeros( (n_im, mx_game) )
   
   # Init CNN
+  print("Initializing Neural Net model ...")
   net, weights = load_model(tfdata_path, tfclass_path, tfmodule_path)
   input_image = net.inputs['data_s0']
-  #CNN = TFPredictor(tfdata_path, tfclass_path, tfmodule_path, n_scales)
   
-  print 
-  print("Start prediction ...")
+  
+  print("\nStart prediction ...")
   count = 0
   gt_vector = np.zeros((len(im_names)))
   pred_vector = np.zeros((len(im_names)))
@@ -275,7 +285,7 @@ def main(argv):
     # Load the converted parameters
     sess.run(tf.global_variables_initializer())
     net.load(weights, sess)
-  
+    
     for ix, name in enumerate(im_names):
       # Get image paths
       im_path = utl.extendName(name, im_folder)
@@ -285,18 +295,18 @@ def main(argv):
       # Read image files
       im = loadImage(im_path, color = is_colored)
       dot_im = loadImage(dot_im_path, color = True)
-      #print im.shape, dot_im.shape
+      #print(im.shape, dot_im.shape)
 
       # Generate features
       if use_perspective:
         dens_im = genPDensity(dot_im, sigmadots, pmap)
       else:
         dens_im = genDensity(dot_im, sigmadots)
-      #print dens_im.shape, dens_im, np.sum(dens_im)
+      #print(dens_im.shape, dens_im, np.sum(dens_im))
       #imgplot = plt.imshow(dens_im,cmap=cm.jet)
       #plt.colorbar()
       #plt.show()
-      
+
       if resize_im > 0:
         # Resize image
         im = utl.resizeMaxSize(im, resize_im)
@@ -315,8 +325,8 @@ def main(argv):
 
       [heith, width] = im.shape[0:2]
       pos = utl.get_dense_pos(heith, width, pw, stride=10)
-      #print pos
-
+      #print(pos)
+      
       # Initialize density matrix and vouting count
       dens_map = np.zeros( (heith, width), dtype = np.float32 )   # Init density to 0
       count_map = np.zeros( (heith, width), dtype = np.int32 )     # Number of votes to divide
@@ -333,10 +343,10 @@ def main(argv):
         crop_im=im[sx,sy,...]
         h, w = crop_im.shape[0:2]
         if h!=w or (h<=0):
-            continue
+          continue
         
         crop_im = utl.resizePatches([crop_im], (pw_norm,pw_norm))
-        #print crop_im[0].shape
+        #print(crop_im[0].shape)
         
         # Get all the scaled images
         im_scales = extractEscales(crop_im, n_scales)
@@ -345,16 +355,16 @@ def main(argv):
         # Load and forward CNN
         for s in range(n_scales):          
           pred = sess.run(net.get_output(), feed_dict={input_image: np.expand_dims(im_scales[0][s],0)})
-
+        
         # Make it squared
         p_side = int(np.sqrt( len( pred.flatten() ) )) 
         pred = pred.reshape(  (p_side, p_side) )
-        #print("shape of pred:", pred.shape
+        #print("shape of pred:", pred.shape)
         
         # Resize it back to the original size
         pred = utl.resizeDensityPatch(pred, (pw,pw))
         pred[pred<0] = 0
-        #print("shape of pred:", pred.shape
+        #print("shape of pred:", pred.shape)
         
         # Sumup density map into density map and increase count of votes
         dens_map[sx,sy] += pred

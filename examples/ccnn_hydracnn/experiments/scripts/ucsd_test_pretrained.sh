@@ -11,9 +11,11 @@ GPU_DEV=0
 # Parameters, uncomment one of the following set of parameters
 # CCNN
 CONFIG_FILE=models/ucsd/ccnn/ccnn_ucsd_cfg.yml
-#CAFFE_MODEL=models/pretrained_models/ucsd/ccnn/ucsd_ccnn_max.caffemodel
+CAFFE_MODEL=models/pretrained_models/ucsd/ccnn/ucsd_ccnn_max.caffemodel
 DEPLOY=models/ucsd/ccnn/ccnn_deploy.prototxt # Modify it to choose another dataset
-KERAS_MODEL=models/pretrained_models/ucsd/ccnn/ucsd_ccnn_max_keras.h5
+TF_DATA=models/ucsd/ccnn/ucsd_ccnn_max.npy
+TF_CLASS=models/ucsd/ccnn/ucsd_ccnn_max.py
+TF_MODULE=../../caffe-tensorflow
 
 # HYDRA 2s
 #CONFIG_FILE=models/ucsd/hydra2/hydra2_ucsd_cfg.yml
@@ -33,7 +35,8 @@ KERAS_MODEL=models/pretrained_models/ucsd/ccnn/ucsd_ccnn_max_keras.h5
 T="$(date +%s)"
 
 # Test Net
-python src/test_ucsd_keras.py --dev ${GPU_DEV} --prototxt ${DEPLOY} --kerasmodel ${KERAS_MODEL} --cfg ${CONFIG_FILE}
+#python code/test.py --dev ${GPU_DEV} --prototxt ${DEPLOY} --caffemodel ${CAFFE_MODEL} --cfg ${CONFIG_FILE}
+python code/test.py --tfdata ${TF_DATA} --tfclass ${TF_CLASS} --tfmodule ${TF_MODULE} --cfg ${CONFIG_FILE}
 
 T="$(($(date +%s)-T))"
 echo "Time in seconds: ${T}"
