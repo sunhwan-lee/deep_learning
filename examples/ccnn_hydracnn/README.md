@@ -111,6 +111,17 @@ python caffe-tensorflow/convert.py --caffemodel examples/ccnn_hydracnn/models/uc
 ```
 
 * UCF
+```Shell
+python caffe-tensorflow/convert.py --caffemodel examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_0.caffemodel --data-output-path examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_0.npy --code-output-path examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_0.py examples/ccnn_hydracnn/models/ucf/ccnn/ccnn_deploy.prototxt
+
+python caffe-tensorflow/convert.py --caffemodel examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_1.caffemodel --data-output-path examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_1.npy --code-output-path examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_1.py examples/ccnn_hydracnn/models/ucf/ccnn/ccnn_deploy.prototxt
+
+python caffe-tensorflow/convert.py --caffemodel examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_2.caffemodel --data-output-path examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_2.npy --code-output-path examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_2.py examples/ccnn_hydracnn/models/ucf/ccnn/ccnn_deploy.prototxt
+
+python caffe-tensorflow/convert.py --caffemodel examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_3.caffemodel --data-output-path examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_3.npy --code-output-path examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_3.py examples/ccnn_hydracnn/models/ucf/ccnn/ccnn_deploy.prototxt
+
+python caffe-tensorflow/convert.py --caffemodel examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_4.caffemodel --data-output-path examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_4.npy --code-output-path examples/ccnn_hydracnn/models/ucf/ccnn/ucf_ccnn_4.py examples/ccnn_hydracnn/models/ucf/ccnn/ccnn_deploy.prototxt
+```
 
 
 #### Test the pretrained models

@@ -13,6 +13,9 @@ GPU_DEV=0
 CONFIG_FILE=models/ucf/ccnn/ccnn_ucf_set_ 
 CAFFE_MODEL=models/pretrained_models/ucf/ccnn/ucf_ccnn
 DEPLOY=models/ucf/ccnn/ccnn_deploy.prototxt
+TF_DATA=models/ucf/ccnn/ucf_ccnn_
+TF_CLASS=models/ucf/ccnn/ucf_ccnn_
+TF_MODULE=../../caffe-tensorflow
 
 # HYDRA 2s
 #CONFIG_FILE=models/ucf/hydra2/hydra2_ucf_set_
@@ -24,21 +27,23 @@ DEPLOY=models/ucf/ccnn/ccnn_deploy.prototxt
 #CAFFE_MODEL=models/pretrained_models/ucf/hydra3/ucf_hydra3
 #DEPLOY=models/ucf/hydra3/hydra3_deploy.prototxt
 
-LOG="experiments/logs/ucf_ccnn_`date +'%Y-%m-%d_%H-%M-%S'`.txt"
-exec &> >(tee -a "$LOG")
-echo Logging output to "$LOG"
+#LOG="experiments/logs/ucf_ccnn_`date +'%Y-%m-%d_%H-%M-%S'`.txt"
+#exec &> >(tee -a "$LOG")
+#echo Logging output to "$LOG"
 
 # Time the task
 T="$(date +%s)"
 
-for IX in 0 1 2 3 4
+#for IX in 0 1 2 3 4
+for IX in 0
 do
   # Test Net
-  python src/test.py --dev ${GPU_DEV} --prototxt ${DEPLOY} --caffemodel ${CAFFE_MODEL}_${IX}.caffemodel --cfg ${CONFIG_FILE}${IX}_cfg.yml
+  #python src/test.py --dev ${GPU_DEV} --prototxt ${DEPLOY} --caffemodel ${CAFFE_MODEL}_${IX}.caffemodel --cfg ${CONFIG_FILE}${IX}_cfg.yml
+  python code/test.py --tfdata ${TF_DATA}${IX}.npy --tfclass ${TF_CLASS}${IX}.py --tfmodule ${TF_MODULE} --cfg ${CONFIG_FILE}${IX}_cfg.yml
 done
 
 # Print MAE and MSD
-python tools/gen_ucf_results.py --results genfiles/results/ccnn_ucf_set_
+#python tools/gen_ucf_results.py --results output/results/ccnn_ucf_set_
 
 T="$(($(date +%s)-T))"
 echo "Time in seconds: ${T}"

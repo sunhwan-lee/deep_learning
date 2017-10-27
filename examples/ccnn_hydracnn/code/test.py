@@ -41,9 +41,7 @@ def load_model(tfdata, tfclass, tfmodule):
   # append path to tensorflow class file
   sys.path.append(os.path.abspath(tfclass[:tfclass.rfind("/")+1]))
 
-  tfclass_name = tfclass[tfclass.rfind("/")+1:]
-
-  
+  tfclass_name = tfclass[tfclass.rfind("/")+1:]  
   
   if "trancos" in tfclass_name:
     if "ccnn" in tfclass_name:
@@ -51,6 +49,9 @@ def load_model(tfdata, tfclass, tfmodule):
   
       images = tf.placeholder(tf.float32, shape=(None, 72, 72, 3))    
       net = TRANCOS_CCNN({"data_s0": images})
+
+      weights = np.load(tfdata, encoding="latin1")
+      weights.item()["conv6"]["biases"] = np.array([weights.item()["conv6"]["biases"]])
 
   elif "ucsd" in tfclass_name:
     
@@ -69,8 +70,30 @@ def load_model(tfdata, tfclass, tfmodule):
     images = tf.placeholder(tf.float32, shape=(None, 72, 72, 1))
     net = UCSD_CNN({"data_s0": images})
 
-  weights = np.load(tfdata, encoding="latin1")
-  weights.item()["conv6"]["biases"] = np.array([weights.item()["conv6"]["biases"]])
+    weights = np.load(tfdata, encoding="latin1")
+    weights.item()["conv6"]["biases"] = np.array([weights.item()["conv6"]["biases"]])
+
+  elif "ucf" in tfclass_name:
+
+    if "ccnn_0" in tfclass_name:
+      from ucf_ccnn_0 import UCF_CNN
+
+    if "ccnn_1" in tfclass_name:
+      from ucf_ccnn_1 import UCF_CNN
+
+    if "ccnn_2" in tfclass_name:
+      from ucf_ccnn_2 import UCF_CNN
+
+    if "ccnn_3" in tfclass_name:
+      from ucf_ccnn_3 import UCF_CNN
+
+    if "ccnn_4" in tfclass_name:
+      from ucf_ccnn_4 import UCF_CNN
+
+    images = tf.placeholder(tf.float32, shape=(None, 72, 72, 1))
+    net = UCF_CNN({"data_s0": images})
+
+    weights = np.load(tfdata, encoding="latin1")
 
   return net, weights
         
@@ -90,30 +113,30 @@ def gameRec(test, gt, cur_lvl, tar_lvl):
     assert dim == gt.shape
     
     if cur_lvl == tar_lvl:
-        return np.abs( np.sum( test ) - np.sum( gt ) )
+      return np.abs( np.sum( test ) - np.sum( gt ) )
     else:
 
-        # Creating the four slices
-        y_half = int( dim[0]/2 )
-        x_half = int( dim[1]/2 )
-        
-        dens_slice = []
-        dens_slice.append( test[ 0:y_half, 0:x_half ] )
-        dens_slice.append( test[ 0:y_half, x_half:dim[1] ] )
-        dens_slice.append( test[ y_half:dim[0], 0:x_half] )
-        dens_slice.append( test[ y_half:dim[0], x_half:dim[1] ] )
+      # Creating the four slices
+      y_half = int( dim[0]/2 )
+      x_half = int( dim[1]/2 )
+      
+      dens_slice = []
+      dens_slice.append( test[ 0:y_half, 0:x_half ] )
+      dens_slice.append( test[ 0:y_half, x_half:dim[1] ] )
+      dens_slice.append( test[ y_half:dim[0], 0:x_half] )
+      dens_slice.append( test[ y_half:dim[0], x_half:dim[1] ] )
 
-        gt_slice = []
-        gt_slice.append( gt[ 0:y_half, 0:x_half ] )
-        gt_slice.append( gt[ 0:y_half, x_half:dim[1] ] )
-        gt_slice.append( gt[ y_half:dim[0], 0:x_half] )
-        gt_slice.append( gt[ y_half:dim[0], x_half:dim[1] ] )
+      gt_slice = []
+      gt_slice.append( gt[ 0:y_half, 0:x_half ] )
+      gt_slice.append( gt[ 0:y_half, x_half:dim[1] ] )
+      gt_slice.append( gt[ y_half:dim[0], 0:x_half] )
+      gt_slice.append( gt[ y_half:dim[0], x_half:dim[1] ] )
 
-        res = np.zeros(4)
-        for a in range(4):
-            res[a] = gameRec(dens_slice[a], gt_slice[a], cur_lvl + 1, tar_lvl)
-    
-        return np.sum(res);      
+      res = np.zeros(4)
+      for a in range(4):
+        res[a] = gameRec(dens_slice[a], gt_slice[a], cur_lvl + 1, tar_lvl)
+  
+      return np.sum(res);      
 
 '''
     @brief: Compute the game metric error.
@@ -285,7 +308,6 @@ def main(argv):
   net, weights = load_model(tfdata_path, tfclass_path, tfmodule_path)
   input_image = net.inputs['data_s0']
   
-  
   print("\nStart prediction ...")
   count = 0
   gt_vector = np.zeros((len(im_names)))
@@ -316,13 +338,17 @@ def main(argv):
       #imgplot = plt.imshow(dens_im,cmap=cm.jet)
       #plt.colorbar()
       #plt.show()
-
+      
       if resize_im > 0:
         # Resize image
         im = utl.resizeMaxSize(im, resize_im)
         gt_sum = dens_im.sum()
         dens_im = utl.resizeMaxSize(dens_im, resize_im)
         dens_im = dens_im * gt_sum / dens_im.sum()
+      #print(dens_im.shape, dens_im, np.sum(dens_im))
+      #imgplot = plt.imshow(dens_im,cmap=cm.jet)
+      #plt.colorbar()
+      #plt.show()
         
       # Get mask if needed
       if dataset != 'UCSD':
@@ -387,6 +413,7 @@ def main(argv):
       resImg = dens_map / count_map
 
       # Mask image if provided
+      gtdots = dens_im
       if mask is not None:
         resImg = resImg  * mask
         gtdots = dens_im * mask
