@@ -1,0 +1,132 @@
+Sunhwans-MBP:code sunhwan$ python retrain.py --image_dir ../data_two_class
+/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+
+model_info: {'bottleneck_tensor_name': 'pool_3/_reshape:0', 'data_url': 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz', 'model_file_name': 'classify_image_graph_def.pb', 'input_std': 128, 'resized_input_tensor_name': 'Mul:0', 'input_height': 299, 'quantize_layer': False, 'input_width': 299, 'input_depth': 3, 'input_mean': 128, 'bottleneck_tensor_size': 2048}
+Not extracting or downloading files, model already present in disk
+Model path:  /tmp/imagenet/classify_image_graph_def.pb
+
+graph, bottleneck_tensor, resized_image_tensor: <tensorflow.python.framework.ops.Graph object at 0x117977490> Tensor("pool_3/_reshape:0", shape=(1, 2048), dtype=float32) Tensor("Mul:0", shape=(1, 299, 299, 3), dtype=float32)
+INFO:tensorflow:Looking for images in 'revner'
+INFO:tensorflow:Looking for images in 'non_renver'
+
+image_lists: {'revner': {'training': ['DJI_0420-Nordforben-\xc3\xb8st.JPG', 'DJI_0289-Sydforben.JPG', 'DJI_0022-Nord.JPG', 'DJI_0383-Sydforben.JPG', 'DJI_0032-Nord.JPG', 'DJI_0172-Nord.JPG', 'DJI_0640-Nord.JPG', 'DJI_0408-Nordforben-\xc3\xb8st.JPG', 'DJI_0136-Sydforben.JPG', 'DJI_0436-Nordforben-\xc3\xb8st.JPG', 'DJI_0261-Sydforben.JPG', 'DJI_0469-Nordforben-\xc3\xb8st.JPG', 'DJI_0429-Nordforben-\xc3\xb8st.JPG', 'DJI_0402-Nordforben-\xc3\xb8st.JPG', 'DJI_0026-Nord.JPG', 'DJI_0684-Nord.JPG', 'DJI_0107-Nord.JPG'], 'testing': ['DJI_0035-Nord.JPG', 'DJI_0045-Sydforben.JPG', 'DJI_0228-Nord.JPG', 'DJI_0105-Nord.JPG', 'DJI_0235-Nord.JPG', 'DJI_0125-Sydforben.JPG', 'DJI_0177-Nord.JPG', 'DJI_0211-Sydforben.JPG', 'DJI_0157-Sydforben.JPG', 'DJI_0177-Sydforben.JPG', 'DJI_0348-Sydforben.JPG', 'DJI_0133-Nord.JPG'], 'dir': 'revner', 'validation': ['DJI_0423-Nordforben-\xc3\xb8st.JPG', 'DJI_0355-Sydforben.JPG', 'DJI_0414-Nordforben-\xc3\xb8st.JPG']}, 'non renver': {'training': ['DJI_0677-Nordforben.JPG', 'DJI_0593-Nord.JPG', 'DJI_0493-Sydforben.JPG', 'DJI_0257-Sydforben.JPG', 'DJI_0023-Nordforben.JPG', 'DJI_0555-Nord.JPG', 'DJI_0001-Nord.JPG', 'DJI_0276-Sydforben-vest.JPG', 'DJI_0587-Sydforben.JPG', 'DJI_0881-Sydforben.JPG', 'DJI_0609-Nord.JPG', 'DJI_0852-Nord.JPG', 'DJI_0316-Sydforben-vest.JPG', 'DJI_0872-Sydforben.JPG', 'DJI_0033-Nordforben.JPG', 'DJI_0450-Sydforben.JPG', 'DJI_0145-Nordforben-\xc3\xb8st.JPG', 'DJI_0814-Sydforben.JPG', 'DJI_0597-Nord.JPG', 'DJI_0408-Sydforben-vest.JPG', 'DJI_0326-Nordforben-\xc3\xb8st.JPG', 'DJI_0823-Sydforben.JPG', 'DJI_0252-Sydforben.JPG'], 'testing': ['DJI_0619-Nord.JPG', 'DJI_0404-Sydforben-vest.JPG', 'DJI_0683-Nordforben.JPG', 'DJI_0452-Sydforben-vest.JPG', 'DJI_0745-Nordforben.JPG', 'DJI_0002-Nord.JPG', 'DJI_0610-Nord.JPG', 'DJI_0155-Nord.JPG', 'DJI_0348-Nordforben-\xc3\xb8st.JPG', 'DJI_0356-Nordforben-\xc3\xb8st.JPG', 'DJI_0073-Nord.JPG'], 'dir': 'non_renver', 'validation': ['DJI_0047-Nordforben.JPG', 'DJI_0550-Sydforben.JPG', 'DJI_0605-Nord.JPG', 'DJI_0158-Nordforben.JPG', 'DJI_0783-Sydforben.JPG', 'DJI_0068-Nord.JPG', 'DJI_0653-Nord.JPG']}}
+2018-01-22 16:37:53.973267: I tensorflow/core/platform/cpu_feature_guard.cc:137] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.2 AVX AVX2 FMA
+
+jpeg_data_tensor, decoded_image_tensor: Tensor("DecodeJPGInput:0", dtype=string) Tensor("Mul_1:0", shape=(1, 299, 299, 3), dtype=float32)
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0677-Nordforben.JPG_inception_v3.txt
+2018-01-22 16:37:55.276094: W tensorflow/core/framework/op_def_util.cc:334] Op BatchNormWithGlobalNormalization is deprecated. It will cease to work in GraphDef version 9. Use tf.nn.batch_normalization().
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0593-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0493-Sydforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0257-Sydforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0023-Nordforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0555-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0001-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0276-Sydforben-vest.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0587-Sydforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0881-Sydforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0609-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0852-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0316-Sydforben-vest.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0872-Sydforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0033-Nordforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0450-Sydforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0145-Nordforben-øst.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0814-Sydforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0597-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0408-Sydforben-vest.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0326-Nordforben-øst.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0823-Sydforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0252-Sydforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0619-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0404-Sydforben-vest.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0683-Nordforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0452-Sydforben-vest.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0745-Nordforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0002-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0610-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0155-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0348-Nordforben-øst.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0356-Nordforben-øst.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0073-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0047-Nordforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0550-Sydforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0605-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0158-Nordforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0783-Sydforben.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0068-Nord.JPG_inception_v3.txt
+INFO:tensorflow:Creating bottleneck at /tmp/bottleneck/non_renver/DJI_0653-Nord.JPG_inception_v3.txt
+INFO:tensorflow:2018-01-22 16:38:11.735231: Step 0: Train accuracy = 70.0%
+INFO:tensorflow:2018-01-22 16:38:11.735408: Step 0: Cross entropy = 0.544222
+INFO:tensorflow:2018-01-22 16:38:12.586628: Step 0: Validation accuracy = 53.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:13.066046: Step 50: Train accuracy = 90.0%
+INFO:tensorflow:2018-01-22 16:38:13.066313: Step 50: Cross entropy = 0.315145
+INFO:tensorflow:2018-01-22 16:38:13.134760: Step 50: Validation accuracy = 63.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:13.594564: Step 100: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:13.594766: Step 100: Cross entropy = 0.128600
+INFO:tensorflow:2018-01-22 16:38:13.658210: Step 100: Validation accuracy = 60.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:14.117122: Step 150: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:14.117476: Step 150: Cross entropy = 0.105521
+INFO:tensorflow:2018-01-22 16:38:14.181654: Step 150: Validation accuracy = 70.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:14.633898: Step 200: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:14.634138: Step 200: Cross entropy = 0.097713
+INFO:tensorflow:2018-01-22 16:38:14.696689: Step 200: Validation accuracy = 61.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:15.145702: Step 250: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:15.145831: Step 250: Cross entropy = 0.118600
+INFO:tensorflow:2018-01-22 16:38:15.209658: Step 250: Validation accuracy = 66.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:15.665036: Step 300: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:15.665232: Step 300: Cross entropy = 0.051609
+INFO:tensorflow:2018-01-22 16:38:15.732314: Step 300: Validation accuracy = 81.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:16.181254: Step 350: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:16.181392: Step 350: Cross entropy = 0.077861
+INFO:tensorflow:2018-01-22 16:38:16.247581: Step 350: Validation accuracy = 73.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:16.699863: Step 400: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:16.700375: Step 400: Cross entropy = 0.055876
+INFO:tensorflow:2018-01-22 16:38:16.764433: Step 400: Validation accuracy = 80.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:17.223216: Step 450: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:17.223357: Step 450: Cross entropy = 0.056395
+INFO:tensorflow:2018-01-22 16:38:17.283357: Step 450: Validation accuracy = 81.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:17.738211: Step 500: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:17.738370: Step 500: Cross entropy = 0.021645
+INFO:tensorflow:2018-01-22 16:38:17.800247: Step 500: Validation accuracy = 67.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:18.253459: Step 550: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:18.253652: Step 550: Cross entropy = 0.029994
+INFO:tensorflow:2018-01-22 16:38:18.323051: Step 550: Validation accuracy = 79.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:18.772482: Step 600: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:18.772620: Step 600: Cross entropy = 0.035953
+INFO:tensorflow:2018-01-22 16:38:18.841544: Step 600: Validation accuracy = 79.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:19.301286: Step 650: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:19.301424: Step 650: Cross entropy = 0.021817
+INFO:tensorflow:2018-01-22 16:38:19.361051: Step 650: Validation accuracy = 77.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:19.814058: Step 700: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:19.814186: Step 700: Cross entropy = 0.055310
+INFO:tensorflow:2018-01-22 16:38:19.878480: Step 700: Validation accuracy = 81.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:20.337328: Step 750: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:20.337458: Step 750: Cross entropy = 0.031909
+INFO:tensorflow:2018-01-22 16:38:20.399350: Step 750: Validation accuracy = 81.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:20.860160: Step 800: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:20.860296: Step 800: Cross entropy = 0.019944
+INFO:tensorflow:2018-01-22 16:38:20.925635: Step 800: Validation accuracy = 78.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:21.380920: Step 850: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:21.381049: Step 850: Cross entropy = 0.026262
+INFO:tensorflow:2018-01-22 16:38:21.445398: Step 850: Validation accuracy = 79.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:21.902006: Step 900: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:21.902134: Step 900: Cross entropy = 0.031231
+INFO:tensorflow:2018-01-22 16:38:21.967301: Step 900: Validation accuracy = 75.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:22.417164: Step 950: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:22.417296: Step 950: Cross entropy = 0.010117
+INFO:tensorflow:2018-01-22 16:38:22.483463: Step 950: Validation accuracy = 76.0% (N=100)
+INFO:tensorflow:2018-01-22 16:38:22.934204: Step 999: Train accuracy = 100.0%
+INFO:tensorflow:2018-01-22 16:38:22.934345: Step 999: Cross entropy = 0.026297
+INFO:tensorflow:2018-01-22 16:38:23.000143: Step 999: Validation accuracy = 81.0% (N=100)
+INFO:tensorflow:Final test accuracy = 73.9% (N=23)
+INFO:tensorflow:=== MISCLASSIFIED TEST IMAGES ===
+INFO:tensorflow:                            ../data_two_class/revner/DJI_0228-Nord.JPG  non renver
+INFO:tensorflow:                            ../data_two_class/revner/DJI_0177-Nord.JPG  non renver
+INFO:tensorflow:                  ../data_two_class/non_renver/DJI_0683-Nordforben.JPG  revner
+INFO:tensorflow:              ../data_two_class/non_renver/DJI_0452-Sydforben-vest.JPG  revner
+INFO:tensorflow:                        ../data_two_class/non_renver/DJI_0155-Nord.JPG  revner
+INFO:tensorflow:                        ../data_two_class/non_renver/DJI_0073-Nord.JPG  revner
+INFO:tensorflow:Froze 2 variables.
+Converted 2 variables to const ops.
+Sunhwans-MBP:code sunhwan$ 

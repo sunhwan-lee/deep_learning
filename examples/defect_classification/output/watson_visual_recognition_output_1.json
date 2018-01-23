@@ -1,0 +1,72 @@
+{
+  "images": [
+    {
+      "classifiers": [],
+      "image": "renver_test_1.zip/DJI_0619-Nord.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_1.zip/DJI_0404-Sydforben-vest.JPG"
+    },
+    {
+      "classifiers": [
+        {
+          "classifier_id": "renver_classifier_1788498168",
+          "name": "renver_classifier",
+          "classes": [
+            {
+              "class": "classname",
+              "score": 0.702178
+            }
+          ]
+        }
+      ],
+      "image": "renver_test_1.zip/DJI_0228-Nord.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_1.zip/DJI_0683-Nordforben.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_1.zip/DJI_0452-Sydforben-vest.JPG"
+    },
+    {
+      "classifiers": [
+        {
+          "classifier_id": "renver_classifier_1788498168",
+          "name": "renver_classifier",
+          "classes": [
+            {
+              "class": "classname",
+              "score": 0.694942
+            }
+          ]
+        }
+      ],
+      "image": "renver_test_1.zip/DJI_0235-Nord.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_1.zip/DJI_0745-Nordforben.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_1.zip/DJI_0610-Nord.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_1.zip/DJI_0348-Nordforben-øst.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_1.zip/DJI_0348-Sydforben.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_1.zip/DJI_0356-Nordforben-øst.JPG"
+    }
+  ],
+  "images_processed": 11,
+  "custom_classes": 1
+}

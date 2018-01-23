@@ -1,0 +1,87 @@
+{
+  "images": [
+    {
+      "classifiers": [
+        {
+          "classifier_id": "renver_classifier_1788498168",
+          "name": "renver_classifier",
+          "classes": [
+            {
+              "class": "classname",
+              "score": 0.5813
+            }
+          ]
+        }
+      ],
+      "image": "renver_test_2.zip/DJI_0035-Nord.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_2.zip/DJI_0045-Sydforben.JPG"
+    },
+    {
+      "classifiers": [
+        {
+          "classifier_id": "renver_classifier_1788498168",
+          "name": "renver_classifier",
+          "classes": [
+            {
+              "class": "classname",
+              "score": 0.603132
+            }
+          ]
+        }
+      ],
+      "image": "renver_test_2.zip/DJI_0105-Nord.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_2.zip/DJI_0125-Sydforben.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_2.zip/DJI_0177-Nord.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_2.zip/DJI_0211-Sydforben.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_2.zip/DJI_0002-Nord.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_2.zip/DJI_0157-Sydforben.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_2.zip/DJI_0155-Nord.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_2.zip/DJI_0177-Sydforben.JPG"
+    },
+    {
+      "classifiers": [
+        {
+          "classifier_id": "renver_classifier_1788498168",
+          "name": "renver_classifier",
+          "classes": [
+            {
+              "class": "classname",
+              "score": 0.695465
+            }
+          ]
+        }
+      ],
+      "image": "renver_test_2.zip/DJI_0073-Nord.JPG"
+    },
+    {
+      "classifiers": [],
+      "image": "renver_test_2.zip/DJI_0133-Nord.JPG"
+    }
+  ],
+  "images_processed": 12,
+  "custom_classes": 1
+}
